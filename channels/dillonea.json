@@ -1,0 +1,18 @@
+{
+	"channel": "dillonea",
+	"commands" : [
+		{
+			"command": "ponder", 
+			"config": {
+				"resetTime": 1600,
+				"messageInterval": 30,
+				"helpInterval": 15,
+				"countInterval": 10,
+				"ignores": [
+					"ponderyier",
+					"nightbot"
+				]
+			}
+		}
+	]
+}

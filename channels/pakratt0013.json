@@ -1,0 +1,24 @@
+{
+	"channel": "pakratt0013",
+	"commands" : [
+		{
+			"command": "ponder", 
+			"config": {
+				"resetTime": 1600,
+				"messageInterval": 30,
+				"helpInterval": 15,
+				"countInterval": 10,
+				"ignores": [
+					"ponderyier",
+					"nightbot"
+				],
+				"unlimitedPonders": [
+					"pakratt0013",
+					"dillonea",
+					"lordbaer",
+					"honneyplay"
+				]
+			}
+		}
+	]
+}
