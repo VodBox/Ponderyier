@@ -1,0 +1,23 @@
+{
+  "name": "ponderyier",
+  "version": "1.0.0",
+  "description": "PondV5 - Scaleable Twitch Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VodBox/Ponderyier.git"
+  },
+  "author": "VodBox (Dillon)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/VodBox/Ponderyier/issues"
+  },
+  "homepage": "https://github.com/VodBox/Ponderyier#readme",
+  "dependencies": {
+    "hotswap": "^1.1.0",
+    "jsmegahal": "^1.2.4"
+  }
+}
