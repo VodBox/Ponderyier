@@ -2,6 +2,8 @@ var hal = require('jsmegahal');
 var zlib = require('zlib');
 var fs = require('fs');
 
+var lupus = require('lupus');
+
 var users = {};
 
 var messageStore = [];
@@ -9,7 +11,8 @@ var messageStore = [];
 var megaHAL;
 
 module.exports = function() {
-	megaHAL = new hal();
+	console.log('YES. THINGS HAVE CHANGED');
+	megaHAL = new hal(1);
 	fs.readFile('./messages.zip', function(err, res) {
 		if(err) {
 			console.log(err);
@@ -67,25 +70,31 @@ module.exports = function() {
 			users[tags["channel"]].helpLeft--;
 			users[tags["channel"]].countLeft--;
 			if(tags["message"].startsWith('!ponder ')) {
+				console.log('here');
 				if(users[tags["channel"]].unlimitedPonders.indexOf(tags["user"]) > -1) {
 					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
 				}else if(users[tags["channel"]].messagesLeft < 1) {
-					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
 					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
+					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
 				} else if(users[tags["channel"]].countLeft < 1) {
-					return "There are " + users[tags["channel"]].messagesLeft + " messages left till the next !ponder";
+					var result =  "There are " + users[tags["channel"]].messagesLeft + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
+					return result;
 				}
 			} else if(tags["message"] == "!pcount") {
 				if(users[tags["channel"]].countLeft < 1) {
-					return "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
+					var result =  "There are " + users[tags["channel"]].messagesLeft + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
+					return result;
 				}
 			} else if(tags["message"] == "!phelp") {
 				if(users[tags["channel"]].helpLeft < 1) {
-					return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 					users[tags["channel"]].helpLeft = users[tags["channel"]].helpInterval;
+					return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 				}
+			} else if(tags["message"].startsWith("!load ") && tags["user"] == "dillonea") {
+				loadFromIrc(tags["message"].replace("!load ", ""));
+				return "Loading from " + tags["message"].replace("!load ", "") + "..."; 
 			}
 			
 			if(users[tags["channel"]].ignores.indexOf(tags["user"]) < 0) {
@@ -97,5 +106,27 @@ module.exports = function() {
 	this.pullOptions = function() {
 		
 	};
+	
+	this.setOptions = function(options) {
+		
+	};
+	
+	this.exit = function() {
+		
+	};
 	return this;
 };
+var chatLines;
+
+function loadFromIrc(file) {
+	fs.readFile('./' + file, 'utf8', function(error, response) {
+		if(error) {
+			console.log(error);
+		} else {
+			chatLines = response.match(/\d+\-\d+\:\d+\:\d+\<.(\S+)\>\s(.+)\n/g);
+			lupus(0, chatLines.length, function(n) {
+				megaHAL.add(chatLines[n].match(/\d+\-\d+\:\d+\:\d+\<.\S+\>\s(.+)\n/)[1]);
+			});
+		}
+	});
+}

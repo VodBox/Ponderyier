@@ -96,6 +96,33 @@ function startPond() {
 	});
 }
 
+function reloadPond() {
+	var reloaded = {};
+	for(var command in commandRefs) {
+		commandRefs[command].exit();
+		delete commandRefs[command];
+	}
+	commandRefs = {};
+	fs.readdir('./channels/', function(err, files) {
+		for(var i = 0, l = files.length; i < l; ++i) {
+			irc.send('JOIN #' + files[i].replace('.json', ''));
+			fs.readFile('./channels/' + files[i], function(error, response) {
+				var config = JSON.parse(response);
+				for(var x = 0, j = config.commands.length; x < j; ++x) {
+					if(!reloaded[config.commands[x].command]) {
+						reloaded[config.commands[x].command] = true;
+						delete require.cache[__dirname + '/' + config.commands[x].command + '.js'];
+					}
+					if(!commandRefs[config.commands[x].command]) {
+						commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
+					}
+					commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
+				}
+			});
+		}
+	});
+}
+
 function on(type, callback) {
 	if(!callbacks[type]) {
 		callbacks[type] = [];
@@ -120,6 +147,9 @@ var symbols = ['<', '>', '?', ',', "'", '='];
 
 on('PRIVMSG', function(data) {
 	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data["user"]) + "> " + data["message"]);
+	if(data["message"] == "!v5Reload" && data["user"] == "dillonea") {
+		reloadPond();
+	}
 	for(var command in commandRefs) {
 		var result = commandRefs[command].runCommand(data);
 		if(result !== undefined) {

@@ -11,6 +11,9 @@
 				"ignores": [
 					"ponderyier",
 					"nightbot"
+				],
+				"unlimitedPonders": [
+					"dillonea"
 				]
 			}
 		}
