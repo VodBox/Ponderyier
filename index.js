@@ -53,7 +53,7 @@ function startPond() {
 				if(tagPart.charAt(0) == "@") {
 					tagPart = tagPart.slice(1,tagPart.length);
 				}
-				keyValuePairs = tagPart.split(";");
+				var keyValuePairs = tagPart.split(";");
 				for(var i = 0, pairs = keyValuePairs.length; i < pairs; ++i) {
 					var key = keyValuePairs[i].split("=")[0];
 					var value = keyValuePairs[i].replace(key + "=", "");
