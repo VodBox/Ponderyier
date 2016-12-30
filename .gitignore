@@ -41,5 +41,5 @@ jspm_packages
 
 tokens
 tw*
-
+badWords.txt
 heapdump*

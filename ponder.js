@@ -8,27 +8,20 @@ var users = {};
 
 var messageStore = [];
 
+var badWords = [];
+
 var megaHAL;
 
 module.exports = function() {
-	console.log('YES. THINGS HAVE CHANGED');
 	megaHAL = new hal(1);
-	fs.readFile('./messages.zip', function(err, res) {
-		if(err) {
-			console.log(err);
+	
+	fs.readFile('./badWords.txt', 'utf8', function(error, response) {
+		if(error) {
+			console.log(error);
 		} else {
-			zlib.unzip(res, function(error, buffer) {
-				if(error) {
-					console.log(error);
-				}  else {
-					messageStore = buffer.toString().split('\n');
-					for(var i = 0, l = messageStore.length; i < l; ++i) {
-						this.megaHAL.add(messageStore[i]);
-					}
-				}
-			});
+			badWords = response.split('\n');
 		}
-	});
+	}); 
 	
 	this.addInstance = function(user, config) {
 		users[user] = {};
@@ -76,10 +69,44 @@ module.exports = function() {
 			if(tags["message"].startsWith('!ponder ')) {
 				console.log('here');
 				if(users[tags["channel"]].unlimitedPonders.indexOf(tags["user"]) > -1) {
-					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
+					var valid = false;
+					var attempts = 0;
+					var ponder;
+					while(!valid) {
+						ponder = megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
+						valid = true;
+						for(var i = 0, l = badWords.length; i < l; ++i) {
+							if(ponder.includes(badWords[i])) {
+								valid = false;
+							}
+						}
+						attempts++;
+						if(attempts == 30) {
+							valid = true;
+							ponder = "null";
+						}
+					}
+					return ponder;
 				}else if(users[tags["channel"]].messagesLeft < 1) {
 					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
-					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
+					var valid = false;
+					var attempts = 0;
+					var ponder;
+					while(!valid) {
+						ponder = megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
+						valid = true;
+						for(var i = 0, l = badWords.length; i < l; ++i) {
+							if(ponder.includes(badWords[i])) {
+								valid = false;
+							}
+						}
+						attempts++;
+						if(attempts == 30) {
+							valid = true;
+							ponder = "null";
+						}
+					}
+					return ponder;
 				} else if(users[tags["channel"]].countLeft < 1) {
 					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
@@ -108,15 +135,17 @@ module.exports = function() {
 	};
 	
 	this.pullOptions = function() {
-		
+		return {
+			"hal": megaHAL
+		};
 	};
 	
 	this.setOptions = function(options) {
-		
+		megaHAL = options["hal"];
 	};
 	
 	this.exit = function() {
-		
+		return true;
 	};
 	return this;
 };
