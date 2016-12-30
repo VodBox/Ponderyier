@@ -77,13 +77,13 @@ module.exports = function() {
 					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
 					return megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
 				} else if(users[tags["channel"]].countLeft < 1) {
-					var result =  "There are " + users[tags["channel"]].messagesLeft + " messages left till the next !ponder";
+					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
 					return result;
 				}
 			} else if(tags["message"] == "!pcount") {
 				if(users[tags["channel"]].countLeft < 1) {
-					var result =  "There are " + users[tags["channel"]].messagesLeft + " messages left till the next !ponder";
+					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
 					return result;
 				}
