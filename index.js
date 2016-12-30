@@ -1,6 +1,8 @@
 var fs = require('fs');
 var WebSocket = require('ws');
 
+var heapdump = require('heapdump');
+
 var username;
 var oauthToken;
 

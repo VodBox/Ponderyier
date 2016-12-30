@@ -18,9 +18,13 @@ module.exports = function() {
 			console.log(err);
 		} else {
 			zlib.unzip(res, function(error, buffer) {
-				messageStore = buffer.toString().split('\n');
-				for(var i = 0, l = messageStore.length; i < l; ++i) {
-					this.megaHAL.add(messageStore[i]);
+				if(error) {
+					console.log(error);
+				}  else {
+					messageStore = buffer.toString().split('\n');
+					for(var i = 0, l = messageStore.length; i < l; ++i) {
+						this.megaHAL.add(messageStore[i]);
+					}
 				}
 			});
 		}
@@ -119,13 +123,15 @@ module.exports = function() {
 var chatLines;
 
 function loadFromIrc(file) {
+	debugger;
 	fs.readFile('./' + file, 'utf8', function(error, response) {
 		if(error) {
 			console.log(error);
 		} else {
 			chatLines = response.match(/\d+\-\d+\:\d+\:\d+\<.(\S+)\>\s(.+)\n/g);
 			lupus(0, chatLines.length, function(n) {
-				megaHAL.add(chatLines[n].match(/\d+\-\d+\:\d+\:\d+\<.\S+\>\s(.+)\n/)[1]);
+				addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+\<.\S+\>\s(.+)\n/)[1];
+				megaHAL.add(addLine);
 			});
 		}
 	});
