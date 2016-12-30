@@ -99,9 +99,12 @@ function startPond() {
 }
 
 function reloadPond() {
-	var reloaded = {};
+	var savedOptions = {};
 	for(var command in commandRefs) {
-		commandRefs[command].exit();
+		var theReturn = commandRefs[command].exit();
+		if(theReturn) {
+			savedOptions[command] = commandRefs[command].pullOptions();
+		}
 		delete commandRefs[command];
 	}
 	commandRefs = {};
@@ -111,12 +114,12 @@ function reloadPond() {
 			fs.readFile('./channels/' + files[i], function(error, response) {
 				var config = JSON.parse(response);
 				for(var x = 0, j = config.commands.length; x < j; ++x) {
-					if(!reloaded[config.commands[x].command]) {
-						reloaded[config.commands[x].command] = true;
-						delete require.cache[__dirname + '/' + config.commands[x].command + '.js'];
-					}
 					if(!commandRefs[config.commands[x].command]) {
+						delete require.cache[__dirname + '/' + config.commands[x].command + '.js'];
 						commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
+						if(savedOptions[config.commands[x].command]) {
+							commandRefs[config.commands[x].command].setOptions(savedOptions[config.commands[x].command]);
+						}
 					}
 					commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
 				}
