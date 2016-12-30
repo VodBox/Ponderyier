@@ -28,7 +28,7 @@ build/Release
 
 # Dependency directories
 /node_modules/*
-!/node_modules/jsmegalhal
+!/node_modules/jsmegahal
 jspm_packages
 
 # Optional npm cache directory
