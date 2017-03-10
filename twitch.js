@@ -16,30 +16,39 @@ var commandRefs = {};
 
 var irc;
 
-fs.readFile('./config.json', 'utf8', function(err, data) {
-	if(err) {
-		console.log(err);
-		process.exit();
-	} else {
-		var result = JSON.parse(data);
-		username = result.username;
-		channels = result.channels;
-		if(result.token) {
-			oauthToken = result.token;
-			startPond();
+if(require.main === module) {
+	fs.readFile('./config.json', 'utf8', function(err, data) {
+		if(err) {
+			console.log(err);
+			process.exit();
 		} else {
-			fs.readFile(result.tokenLocation, 'utf8', function(error, dat) {
-				if(error) {
-					console.log(error);
-					process.exit();
-				} else {
-					oauthToken = dat;
-					startPond();
-				}
-			});
+			var result = JSON.parse(data);
+			username = result.username;
+			channels = result.channels;
+			if(result.token) {
+				oauthToken = result.token;
+				startPond();
+			} else {
+				fs.readFile(result.tokenLocation, 'utf8', function(error, dat) {
+					if(error) {
+						console.log(error);
+						process.exit();
+					} else {
+						oauthToken = dat;
+						startPond();
+					}
+				});
+			}
 		}
-	}
-});
+	});
+}
+
+module.exports = function(user, chans, oauth) {
+	username = user;
+	channels = chans;
+	oauthToken = oauth;
+	startPond();
+}
 
 function startPond() {
 	irc = new WebSocket("wss://irc-ws.chat.twitch.tv/");
