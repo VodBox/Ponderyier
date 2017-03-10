@@ -1,7 +1,9 @@
 var fs = require('fs');
 var WebSocket = require('ws');
 
-var heapdump = require('heapdump');
+if(typeof v8debug === 'object') {
+	var heapdump = require('heapdump');
+}
 
 var username;
 var oauthToken;
