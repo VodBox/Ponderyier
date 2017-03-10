@@ -40,7 +40,8 @@ jspm_packages
 # Tokens
 
 tokens
-tw*
+twpak
+twhon
 badWords.txt
 heapdump*
 build
