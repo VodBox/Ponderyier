@@ -1,14 +1,13 @@
 var fs = require('fs');
 var WebSocket = require('ws');
-
-if(typeof v8debug === 'object') {
-	var heapdump = require('heapdump');
-}
+var path = require('path');
 
 var username;
 var oauthToken;
 
-var channels;
+var savedOptions = {};
+
+var channels = {};
 
 var callbacks = [];
 
@@ -16,39 +15,12 @@ var commandRefs = {};
 
 var irc;
 
-if(require.main === module) {
-	fs.readFile('./config.json', 'utf8', function(err, data) {
-		if(err) {
-			console.log(err);
-			process.exit();
-		} else {
-			var result = JSON.parse(data);
-			username = result.username;
-			channels = result.channels;
-			if(result.token) {
-				oauthToken = result.token;
-				startPond();
-			} else {
-				fs.readFile(result.tokenLocation, 'utf8', function(error, dat) {
-					if(error) {
-						console.log(error);
-						process.exit();
-					} else {
-						oauthToken = dat;
-						startPond();
-					}
-				});
-			}
-		}
-	});
-}
-
-module.exports = function(config) {
-	console.log(config);
-	username = config.username;
-	channels = config.channels;
+module.exports = function(config, main) {
+	this.connected = false;
+	this._super = main;
+	this.username = config.username;
 	if(config.token) {
-		oauthToken = config.token;
+		this.oauthToken = config.token;
 		startPond();
 	} else {
 		fs.readFile(config.tokenLocation, 'utf8', function(error, dat) {
@@ -57,13 +29,23 @@ module.exports = function(config) {
 				process.exit();
 			} else {
 				oauthToken = dat;
-				startPond();
+				startPond(this);
 			}
 		});
 	}
-}
+	this.addChannel = function(channel) {
+		if(connected) {
+			joinChannel(channel);
+		} else {
+			joinQueue[joinQueue.length] = channel;
+		}
+	};
+	return this;
+};
 
-function startPond() {
+var joinQueue = [];
+
+function startPond(that) {
 	irc = new WebSocket("wss://irc-ws.chat.twitch.tv/");
 	irc.on('open', function (event) {
 		irc.on('message', function(message) {
@@ -105,20 +87,10 @@ function startPond() {
 		irc.send('PASS ' + oauthToken);
 		irc.send('NICK ' + username);
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
-		fs.readdir('./channels/', function(err, files) {
-			for(var i = 0, l = files.length; i < l; ++i) {
-				irc.send('JOIN #' + files[i].replace('.json', ''));
-				fs.readFile('./channels/' + files[i], function(error, response) {
-					var config = JSON.parse(response);
-					for(var x = 0, j = config.commands.length; x < j; ++x) {
-						if(!commandRefs[config.commands[x].command]) {
-							commandRefs[config.commands[x].command] = new require('../../commands/' + config.commands[x].command)();
-						}
-						commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
-					}
-				});
-			}
-		});
+		that.connected = true;
+		for(var i = 0, l = joinQueue.length; i < l; ++i) {
+			joinChannel(joinQueue[i]);
+		}
 	});
 }
 
@@ -132,24 +104,24 @@ function reloadPond() {
 		delete commandRefs[command];
 	}
 	commandRefs = {};
-	fs.readdir('./channels/', function(err, files) {
-		for(var i = 0, l = files.length; i < l; ++i) {
-			irc.send('JOIN #' + files[i].replace('.json', ''));
-			fs.readFile('./channels/' + files[i], function(error, response) {
-				var config = JSON.parse(response);
-				for(var x = 0, j = config.commands.length; x < j; ++x) {
-					if(!commandRefs[config.commands[x].command]) {
-						delete require.cache[__dirname + '/' + config.commands[x].command + '.js'];
-						commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
-						if(savedOptions[config.commands[x].command]) {
-							commandRefs[config.commands[x].command].setOptions(savedOptions[config.commands[x].command]);
-						}
-					}
-					commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
-				}
-			});
+	for(var key in channels) {
+		joinChannel(channels[key]);
+	}
+}
+
+function joinChannel(config) {
+	channels[config.url] = config;
+	irc.send('JOIN #' + config.url);
+	for(var x = 0, j = config.commands.length; x < j; ++x) {
+		if(!commandRefs[config.commands[x].command]) {
+			delete require.cache[path.resolve('../../commands/' + config.commands[x].command + '.js')];
+			commandRefs[config.commands[x].command] = new require('../../commands/' + config.commands[x].command)();
+			if(savedOptions && savedOptions[config.commands[x].command]) {
+				commandRefs[config.commands[x].command].setOptions(savedOptions[config.commands[x].command]);
+			}
 		}
-	});
+		commandRefs[config.commands[x].command].addInstance(config.url, config.commands[x].config);
+	}
 }
 
 function on(type, callback) {
