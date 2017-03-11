@@ -43,11 +43,24 @@ if(require.main === module) {
 	});
 }
 
-module.exports = function(user, chans, oauth) {
-	username = user;
-	channels = chans;
-	oauthToken = oauth;
-	startPond();
+module.exports = function(config) {
+	console.log(config);
+	username = config.username;
+	channels = config.channels;
+	if(config.token) {
+		oauthToken = config.token;
+		startPond();
+	} else {
+		fs.readFile(config.tokenLocation, 'utf8', function(error, dat) {
+			if(error) {
+				console.log(error);
+				process.exit();
+			} else {
+				oauthToken = dat;
+				startPond();
+			}
+		});
+	}
 }
 
 function startPond() {
@@ -99,7 +112,7 @@ function startPond() {
 					var config = JSON.parse(response);
 					for(var x = 0, j = config.commands.length; x < j; ++x) {
 						if(!commandRefs[config.commands[x].command]) {
-							commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
+							commandRefs[config.commands[x].command] = new require('../../commands/' + config.commands[x].command)();
 						}
 						commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
 					}
@@ -144,7 +157,7 @@ function on(type, callback) {
 		callbacks[type] = [];
 	}
 	callbacks[type][callbacks[type].length] = callback;
-} 
+}
 
 function issueCallbacks(type, data) {
 	if(callbacks[type]) {
