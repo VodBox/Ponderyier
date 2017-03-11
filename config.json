@@ -1,10 +1,6 @@
 {
 	"twitch": {
 		"tokenLocation": "./tokens/Pond.txt",
-		"username": "pondv5",
-		"channels": [
-			"pakratt0013",
-			"dillonea"
-		]
+		"username": "pondv5"
 	}
 }
