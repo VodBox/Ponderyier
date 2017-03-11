@@ -1,7 +1,6 @@
 var fs = require('fs');
 
-var twitch = require('./twitch.js');
-var twitchBot;
+var interfaces = {};
 
 fs.readFile('./config.json', 'utf8', function(err, data) {
 	if(err) {
@@ -9,21 +8,8 @@ fs.readFile('./config.json', 'utf8', function(err, data) {
 		process.exit();
 	} else {
 		var result = JSON.parse(data);
-		var username = result.username;
-		var channels = result.channels;
-		if(result.token) {
-			var oauthToken = result.token;
-			twitchBot = new twitch(username, channels, oauthToken);
-		} else {
-			fs.readFile(result.tokenLocation, 'utf8', function(error, dat) {
-				if(error) {
-					console.log(error);
-					process.exit();
-				} else {
-					var oauthToken = dat;
-					twitchBot = new twitch(username, channels, oauthToken);
-				}
-			});
+		for(var key in result) {
+			interfaces[key] = new require("./interfaces/" + key + "/main.js")(result[key]);
 		}
 	}
 });
