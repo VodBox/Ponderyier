@@ -5,13 +5,9 @@ var path = require('path');
 var username;
 var oauthToken;
 
-var savedOptions = {};
-
 var channels = {};
 
 var callbacks = [];
-
-var commandRefs = {};
 
 var irc;
 
@@ -50,7 +46,6 @@ function startPond(that) {
 	irc.on('open', function (event) {
 		irc.on('message', function(message) {
 			var data = message;
-			console.log(data);
 			if(data.trim() == "PING :tmi.twitch.tv") {
 				irc.send("PONG :tmi.twitch.tv");
 				console.log("PONGED");
@@ -78,7 +73,7 @@ function startPond(that) {
 					} else {
 						tags["message"] = "";
 					}
-					issueCallbacks(tags["type"], tags);
+					issueCallbacks(tags["type"], tags, that);
 					//console.log(tags);
 					//console.log(tags.channel + ": <" + (tags["display-name"] ? tags["display-name"] : tags["user"]) + "> " + tags["message"]);
 				}
@@ -89,38 +84,24 @@ function startPond(that) {
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 		that.connected = true;
 		for(var i = 0, l = joinQueue.length; i < l; ++i) {
-			joinChannel(joinQueue[i]);
+			joinChannel(joinQueue[i], that);
 		}
 	});
 }
 
-function reloadPond() {
-	var savedOptions = {};
-	for(var command in commandRefs) {
-		var theReturn = commandRefs[command].exit();
-		if(theReturn) {
-			savedOptions[command] = commandRefs[command].pullOptions();
-		}
-		delete commandRefs[command];
-	}
-	commandRefs = {};
-	for(var key in channels) {
-		joinChannel(channels[key]);
-	}
-}
-
-function joinChannel(config) {
+function joinChannel(config, that) {
 	channels[config.url] = config;
 	irc.send('JOIN #' + config.url);
 	for(var x = 0, j = config.commands.length; x < j; ++x) {
-		if(!commandRefs[config.commands[x].command]) {
-			delete require.cache[path.resolve('../../commands/' + config.commands[x].command + '.js')];
-			commandRefs[config.commands[x].command] = new require('../../commands/' + config.commands[x].command)();
-			if(savedOptions && savedOptions[config.commands[x].command]) {
-				commandRefs[config.commands[x].command].setOptions(savedOptions[config.commands[x].command]);
+		that._super.registerCommand({
+			"command": config.commands[x].command,
+			"reload": false,
+			"interface": {
+				"name": "twitch",
+				"destination": config.url,
+				"options": config.commands[x].config
 			}
-		}
-		commandRefs[config.commands[x].command].addInstance(config.url, config.commands[x].config);
+		});
 	}
 }
 
@@ -131,31 +112,38 @@ function on(type, callback) {
 	callbacks[type][callbacks[type].length] = callback;
 }
 
-function issueCallbacks(type, data) {
+function issueCallbacks(type, data, that) {
 	if(callbacks[type]) {
 		for(var i = 0, l = callbacks[type].length; i < l; ++i) {
-			callbacks[type][i](data);
+			callbacks[type][i](data, that);
 		}
 	}
 	if(callbacks['all'] && type == "all") {
 		for(var i = 0, l = callbacks['all'].length; i < l; ++i) {
-			callbacks['all'][i](data);
+			callbacks['all'][i](data, that);
 		}
 	}
 }
 
 var symbols = ['<', '>', '?', ',', "'", '='];
 
-on('PRIVMSG', function(data) {
+on('PRIVMSG', function(data, that) {
 	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data["user"]) + "> " + data["message"]);
 	if(data["message"] == "!v5Reload" && data["user"] == "dillonea") {
-		reloadPond();
-	}
-	for(var command in commandRefs) {
-		var result = commandRefs[command].runCommand(data);
-		if(result !== undefined) {
-			console.log(result);
+		that._super.reload();
+	} else {
+		data["interface"] = {
+			"name": "twitch",
+			"properties": {
+
+			}
+		};
+		var options = {
+			"message": data,
+			"commands": channels[data["channel"]].commands
+		};
+		that._super.runCommand(options, function(result) {
 			irc.send('PRIVMSG #' + data["channel"] + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
-		}
+		});
 	}
 });
