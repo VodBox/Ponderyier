@@ -44,4 +44,6 @@ twpak
 twhon
 badWords.txt
 heapdump*
-build
+build/
+
+out/

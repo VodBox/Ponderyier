@@ -13,6 +13,10 @@ module.exports = function() {
 	start(this);
 };
 
+/**
+ * Starts Pond delegation service
+ * @param  {Object} self - The module.exports for the service
+ */
 function start(self) {
 	fs.readdir('./commands/', function(err, files) {
 		for(var i = 0, l = files.length; i < l; ++i) {
@@ -50,6 +54,15 @@ function start(self) {
 	});
 }
 
+/**
+ * Creates (or optionally replaces) reference to a command object
+ * @param  {Object} options - Options for how how to add command
+ * @param  {string} options.command - Folder name containing a commands index.js
+ * @param  {boolean=} [options.reload=false] - Will load an uncached copy of the command
+ * @param  {Object} options.interface - Information about service
+ * @param  {(string|Object)} options.interface.destination - Service specific identified (eg. Twitch channel name)
+ * @param  {Object} options.interface.options - Command instance configuration
+ */
 function registerCommand(options) {
 	if(commandRefs[options.command]) {
 		if(options.reload === undefined || options.reload === null) {
@@ -61,7 +74,7 @@ function registerCommand(options) {
 			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
 			for(var i = 0, l = instanceCache.length; i < l; ++i) {
 				if(instanceCache[i] !== options.interface) {
-					commandRefs[options.command].addInstance(instanceCache[i].options);
+					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options);
 				}
 			}
 		}
@@ -69,6 +82,14 @@ function registerCommand(options) {
 	}
 }
 
+/**
+ * Takes message data as input, and returns string containing response
+ * @param  {Object} options - Options & information about message.
+ * @param  {Object[]} options.commands - Array of command options and reference information.
+ * @param  {string} options.commands[].command - Folder name containing a commands index.js.
+ * @param  {message} options.message - Message information in standard structure.
+ * @param  {Function} callback - Callback to run when response created (response: string).
+ */
 function runCommand(options, callback) {
 	for(var i = 0, l = options.commands.length; i < l; ++i) {
 		var commandResponse = commandRefs[options.commands[i].command].runCommand(options.message);
@@ -105,3 +126,14 @@ function isDebugging(cb) {
 }
 
 new module.exports();
+
+/**
+ * @typedef message
+ * @type {object}
+ * @property {Object} interface - Object containing information about service message comes from.
+ * @property {string} message - Message text.
+ * @property {string} user - User who that sent message.
+ * @property {string} channel - Location of message sent.
+ * @property {number=} [timestamp] - Epoch/UNIX timestamp of message.
+ * @property {number=} [role] - Integer value determining role level (as defined by roles module).
+ */
