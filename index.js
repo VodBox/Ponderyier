@@ -1,96 +1,58 @@
 var fs = require('fs');
-var WebSocket = require('ws');
+var path = require('path');
 
-var heapdump = require('heapdump');
+//TODO: should these be objects or maps or sets? - wongjoel 2017-03-20
+//TODO: var keyword on these objects? - wongjoel 2017-03-20
+//TODO: const keyword on these objects? - wongjoel 2017-03-20
+interfaces = {}; //object holding interface references.
 
-var username;
-var oauthToken;
+commandRefs = {}; //object holding command references
+savedOptions = {}; //object holding saved options
 
-var channels;
+module.exports = function() {
+	this.registerCommand = registerCommand;
+	this.runCommand = runCommand;
+	this.reload = reload;
+	start(this);
+};
 
-var callbacks = [];
-
-var commandRefs = {};
-
-var irc;
-
-fs.readFile('./config.json', 'utf8', function(err, data) {
-	if(err) {
-		console.log(err);
-		process.exit();
-	} else {
-		var result = JSON.parse(data);
-		username = result.username;
-		channels = result.channels;
-		if(result.token) {
-			oauthToken = result.token;
-			startPond();
-		} else {
-			fs.readFile(result.tokenLocation, 'utf8', function(error, dat) {
-				if(error) {
-					console.log(error);
-					process.exit();
-				} else {
-					oauthToken = dat;
-					startPond();
+/**
+ * Starts Pond delegation service
+ * @param  {Object} self - The module.exports for the service
+ */
+function start(self) {
+	//Populate commandRefs from the command directory
+	fs.readdir('./commands/', function(err, files) {
+		for(var i = 0, l = files.length; i < l; ++i) {
+			var stats = fs.statSync('./commands/' + files[i]);
+			if(stats.isDirectory()) {
+				commandRefs[files[i]] = new require('./commands/' + files[i] + '/index.js')();
+				if(savedOptions && savedOptions[files[i]]) {
+					commandRefs[files[i]].setOptions(savedOptions[files[i]]);
 				}
-			});
+			}
 		}
-	}
-});
-
-function startPond() {
-	irc = new WebSocket("wss://irc-ws.chat.twitch.tv/");
-	irc.on('open', function (event) {
-		irc.on('message', function(message) {
-			var data = message;
-			console.log(data);
-			if(data.trim() == "PING :tmi.twitch.tv") {
-				irc.send("PONG :tmi.twitch.tv");
-				console.log("PONGED");
-			}else {
-				var tags = {}
-				var tagPart = "";
-				tagPart = data.split(" ")[0];
-				if(tagPart.charAt(0) == "@") {
-					tagPart = tagPart.slice(1,tagPart.length);
-				}
-				var keyValuePairs = tagPart.split(";");
-				for(var i = 0, pairs = keyValuePairs.length; i < pairs; ++i) {
-					var key = keyValuePairs[i].split("=")[0];
-					var value = keyValuePairs[i].replace(key + "=", "");
-					tags[key] = value;
-				}
-				if(data.match(/tmi.twitch.tv .+ \#\S+ \:/)) {
-					var contents = data.replace(tagPart + " ", "").split(/\:(.+)/)[1].split(/\:(.+)/);
-					//console.log(contents);
-					if(contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)) {
-						tags["type"] = contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)[1];
-						tags["channel"] = contents[0].match(/tmi.twitch.tv .+ \#(\S+) /)[1];
-						tags["user"] = contents[0].split("!")[0];
-						tags["message"] = contents[1];
-					} else {
-						tags["message"] = "";
-					}
-					issueCallbacks(tags["type"], tags);
-					//console.log(tags);
-					//console.log(tags.channel + ": <" + (tags["display-name"] ? tags["display-name"] : tags["user"]) + "> " + tags["message"]);
+		//Populate interfaces from config.json
+		fs.readFile('./config.json', 'utf8', function(err, data) {
+			if(err) {
+				console.log(err);
+				process.exit();
+			} else {
+				var result = JSON.parse(data);
+				for(var key in result) {
+					interfaces[key] = new require("./interfaces/" + key + "/main.js")(result[key], self);
 				}
 			}
 		});
-		irc.send('PASS ' + oauthToken);
-		irc.send('NICK ' + username);
-		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
+		//Add channel configuration to interfaces from the channel directory
 		fs.readdir('./channels/', function(err, files) {
 			for(var i = 0, l = files.length; i < l; ++i) {
-				irc.send('JOIN #' + files[i].replace('.json', ''));
 				fs.readFile('./channels/' + files[i], function(error, response) {
 					var config = JSON.parse(response);
-					for(var x = 0, j = config.commands.length; x < j; ++x) {
-						if(!commandRefs[config.commands[x].command]) {
-							commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
+					for(var key in config) {
+						if(key != "channel") {
+							interfaces[key].addChannel(config[key]);
 						}
-						commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
 					}
 				});
 			}
@@ -98,68 +60,86 @@ function startPond() {
 	});
 }
 
-function reloadPond() {
-	var savedOptions = {};
-	for(var command in commandRefs) {
-		var theReturn = commandRefs[command].exit();
-		if(theReturn) {
-			savedOptions[command] = commandRefs[command].pullOptions();
+/**
+ * Creates (or optionally replaces) reference to a command object
+ * @param  {Object} options - Options for how how to add command
+ * @param  {string} options.command - Folder name containing a commands index.js
+ * @param  {boolean=} [options.reload=false] - Will load an uncached copy of the command
+ * @param  {Object} options.interface - Information about service
+ * @param  {(string|Object)} options.interface.destination - Service specific identified (eg. Twitch channel name)
+ * @param  {Object} options.interface.options - Command instance configuration
+ */
+function registerCommand(options) {
+	if(commandRefs[options.command]) {
+		if(options.reload === undefined || options.reload === null) {
+			options.reload = false;
 		}
-		delete commandRefs[command];
-	}
-	commandRefs = {};
-	fs.readdir('./channels/', function(err, files) {
-		for(var i = 0, l = files.length; i < l; ++i) {
-			irc.send('JOIN #' + files[i].replace('.json', ''));
-			fs.readFile('./channels/' + files[i], function(error, response) {
-				var config = JSON.parse(response);
-				for(var x = 0, j = config.commands.length; x < j; ++x) {
-					if(!commandRefs[config.commands[x].command]) {
-						delete require.cache[__dirname + '/' + config.commands[x].command + '.js'];
-						commandRefs[config.commands[x].command] = new require('./' + config.commands[x].command)();
-						if(savedOptions[config.commands[x].command]) {
-							commandRefs[config.commands[x].command].setOptions(savedOptions[config.commands[x].command]);
-						}
-					}
-					commandRefs[config.commands[x].command].addInstance(config.channel, config.commands[x].config);
+		if(options.reload) {
+			var instanceCache = commandRefs[options.command].instances;
+			delete require.cache[path.resolve('./commands/' + options.command + '.js')];
+			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
+			for(var i = 0, l = instanceCache.length; i < l; ++i) {
+				if(instanceCache[i] !== options.interface) {
+					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options);
 				}
-			});
+			}
 		}
+		commandRefs[options.command].addInstance(options.interface.destination, options.interface.options);
+	}
+}
+
+/**
+ * Takes message data as input, and returns string containing response
+ * @param  {Object} options - Options & information about message.
+ * @param  {Object[]} options.commands - Array of command options and reference information.
+ * @param  {string} options.commands[].command - Folder name containing a commands index.js.
+ * @param  {message} options.message - Message information in standard structure.
+ * @param  {Function} callback - Callback to run when response created (response: string).
+ */
+function runCommand(options, callback) {
+	for(var i = 0, l = options.commands.length; i < l; ++i) {
+		var commandResponse = commandRefs[options.commands[i].command].runCommand(options.message);
+		if(commandResponse) {
+			callback(commandResponse);
+			break;
+		}
+	}
+}
+
+function reload() {
+
+}
+
+isDebugging(function(err, res) {
+	if(err) {
+		console.log('Something went wrong trying to detect debug mode...');
+	} else if(res) {
+		var heapdump = require('heapdump');
+		console.log('debug mode has been detected');
+	}
+});
+
+function isDebugging(cb) {
+	require('net').createServer().on('error', function(err) {
+		if (err.code === 'EADDRINUSE')
+			cb(null, true);
+		else
+			cb(err);
+	}).listen(process.debugPort, function() {
+		this.close();
+		cb(null, false);
 	});
 }
 
-function on(type, callback) {
-	if(!callbacks[type]) {
-		callbacks[type] = [];
-	}
-	callbacks[type][callbacks[type].length] = callback;
-} 
+new module.exports();
 
-function issueCallbacks(type, data) {
-	if(callbacks[type]) {
-		for(var i = 0, l = callbacks[type].length; i < l; ++i) {
-			callbacks[type][i](data);
-		}
-	}
-	if(callbacks['all'] && type == "all") {
-		for(var i = 0, l = callbacks['all'].length; i < l; ++i) {
-			callbacks['all'][i](data);
-		}
-	}
-}
-
-var symbols = ['<', '>', '?', ',', "'", '='];
-
-on('PRIVMSG', function(data) {
-	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data["user"]) + "> " + data["message"]);
-	if(data["message"] == "!v5Reload" && data["user"] == "dillonea") {
-		reloadPond();
-	}
-	for(var command in commandRefs) {
-		var result = commandRefs[command].runCommand(data);
-		if(result !== undefined) {
-			console.log(result);
-			irc.send('PRIVMSG #' + data["channel"] + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
-		}
-	}
-});
+/**
+ * @typedef message
+ * @type {object}
+ * @property {Object} interface - Object containing information about service message comes from.
+ * @property {string} message - Message text.
+ * @property {string} user - User who that sent message.
+ * @property {string} channel - Location of message sent.
+ * @property {number=} [timestamp] - Epoch/UNIX timestamp of message.
+ * @property {number=} [role] - Integer value determining role level (as defined by roles module).
+ */

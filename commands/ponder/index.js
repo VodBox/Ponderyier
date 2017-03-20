@@ -14,15 +14,21 @@ var megaHAL;
 
 module.exports = function() {
 	megaHAL = new hal(1);
-	
+
 	fs.readFile('./badWords.txt', 'utf8', function(error, response) {
 		if(error) {
 			console.log(error);
 		} else {
 			badWords = response.split('\n');
 		}
-	}); 
-	
+	});
+
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	/**
+	 * Initial setup
+	 * @param  {Object} user -
+	 * @param  {Object} config -
+	 */
 	this.addInstance = function(user, config) {
 		users[user] = {};
 		if(config["unlimitedPonders"]) {
@@ -55,20 +61,28 @@ module.exports = function() {
 		} else {
 			users[user].ignores = [];
 		}
-		
+
 		users[user].messagesLeft = 0;
 		users[user].helpLeft = 0;
 		users[user].countLeft = 0;
 	};
-	
+
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	//TODO: factor out checking for badWords into it's own method? - wongjoel 2017-03-20
+	//TODO: parameterise !phelp response with messageInterval? - wongjoel 2017-03-20
+	/**
+	 * runs the command
+	 * @param  {Object} tags -
+	 * @returns
+	 */
 	this.runCommand = function(tags) {
 		if(users[tags["channel"]]) {
 			users[tags["channel"]].messagesLeft--;
 			users[tags["channel"]].helpLeft--;
 			users[tags["channel"]].countLeft--;
 			if(tags["message"].startsWith('!ponder ')) {
-				console.log('here');
 				if(users[tags["channel"]].unlimitedPonders.indexOf(tags["user"]) > -1) {
+					console.log('Unlimited Ponders');
 					var valid = false;
 					var attempts = 0;
 					var ponder;
@@ -87,7 +101,7 @@ module.exports = function() {
 						}
 					}
 					return ponder;
-				}else if(users[tags["channel"]].messagesLeft < 1) {
+				} else if(users[tags["channel"]].messagesLeft < 1) {
 					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
 					var valid = false;
 					var attempts = 0;
@@ -125,25 +139,37 @@ module.exports = function() {
 				}
 			} else if(tags["message"].startsWith("!load ") && tags["user"] == "dillonea") {
 				loadFromIrc(tags["message"].replace("!load ", ""));
-				return "Loading from " + tags["message"].replace("!load ", "") + "..."; 
+				return "Loading from " + tags["message"].replace("!load ", "") + "...";
 			}
-			
+
 			if(users[tags["channel"]].ignores.indexOf(tags["user"]) < 0) {
 				megaHAL.add(tags["message"]);
 			}
 		}
 	};
-	
+
+	/**
+	 * pulls options from the command
+	 * @returns
+	 */
 	this.pullOptions = function() {
 		return {
 			"hal": megaHAL
 		};
 	};
-	
+
+	/**
+	 * sets options of the command
+	 * @param options - the options to set on the command
+	 */
 	this.setOptions = function(options) {
 		megaHAL = options["hal"];
 	};
-	
+
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	/**
+	 * exit
+	 */
 	this.exit = function() {
 		return true;
 	};
@@ -151,6 +177,11 @@ module.exports = function() {
 };
 var chatLines;
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * load from IRC
+ * @param file -
+ */
 function loadFromIrc(file) {
 	debugger;
 	fs.readFile('./' + file, 'utf8', function(error, response) {
