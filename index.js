@@ -1,10 +1,13 @@
 var fs = require('fs');
 var path = require('path');
 
-interfaces = {};
+//TODO: should these be objects or maps or sets? - wongjoel 2017-03-20
+//TODO: var keyword on these objects? - wongjoel 2017-03-20
+//TODO: const keyword on these objects? - wongjoel 2017-03-20
+interfaces = {}; //object holding interface references.
 
-commandRefs = {};
-savedOptions = {};
+commandRefs = {}; //object holding command references
+savedOptions = {}; //object holding saved options
 
 module.exports = function() {
 	this.registerCommand = registerCommand;
@@ -18,6 +21,7 @@ module.exports = function() {
  * @param  {Object} self - The module.exports for the service
  */
 function start(self) {
+	//Populate commandRefs from the command directory
 	fs.readdir('./commands/', function(err, files) {
 		for(var i = 0, l = files.length; i < l; ++i) {
 			var stats = fs.statSync('./commands/' + files[i]);
@@ -28,6 +32,7 @@ function start(self) {
 				}
 			}
 		}
+		//Populate interfaces from config.json
 		fs.readFile('./config.json', 'utf8', function(err, data) {
 			if(err) {
 				console.log(err);
@@ -39,6 +44,7 @@ function start(self) {
 				}
 			}
 		});
+		//Add channel configuration to interfaces from the channel directory
 		fs.readdir('./channels/', function(err, files) {
 			for(var i = 0, l = files.length; i < l; ++i) {
 				fs.readFile('./channels/' + files[i], function(error, response) {

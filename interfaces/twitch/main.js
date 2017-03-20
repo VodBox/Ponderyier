@@ -2,14 +2,14 @@ var fs = require('fs');
 var WebSocket = require('ws');
 var path = require('path');
 
-var username;
-var oauthToken;
+var username; //Twitch username
+var oauthToken; //OAuth Token for authentication with Twitch
 
 var channels = {};
 
 var callbacks = [];
 
-var irc;
+var irc; //websocket connection to Twitch IRC chat server
 
 module.exports = function(config, main) {
 	this.connected = false;
@@ -19,19 +19,19 @@ module.exports = function(config, main) {
 		this.oauthToken = config.token;
 		startPond();
 	} else {
-		fs.readFile(config.tokenLocation, 'utf8', function(error, dat) {
+		fs.readFile(config.tokenLocation, 'utf8', function(error, data) {
 			if(error) {
 				console.log(error);
 				process.exit();
 			} else {
-				oauthToken = dat;
+				oauthToken = data;
 				startPond(this);
 			}
 		});
 	}
 	this.addChannel = function(channel) {
 		if(connected) {
-			joinChannel(channel);
+			joinChannel(channel); //TODO: is there a missing parameter here? - wongjoel 2017-03-20
 		} else {
 			joinQueue[joinQueue.length] = channel;
 		}
@@ -41,6 +41,12 @@ module.exports = function(config, main) {
 
 var joinQueue = [];
 
+//TODO: rename function? - wongjoel 2017-03-20
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * Starts the connection to twitch
+ * @param  {Object} that -
+ */
 function startPond(that) {
 	irc = new WebSocket("wss://irc-ws.chat.twitch.tv/");
 	irc.on('open', function (event) {
@@ -49,8 +55,9 @@ function startPond(that) {
 			if(data.trim() == "PING :tmi.twitch.tv") {
 				irc.send("PONG :tmi.twitch.tv");
 				console.log("PONGED");
-			}else {
-				var tags = {}
+			} else {
+				//TODO: should tags be an object or a map? - wongjoel 2017-03-20
+				var tags = {};
 				var tagPart = "";
 				tagPart = data.split(" ")[0];
 				if(tagPart.charAt(0) == "@") {
@@ -89,6 +96,12 @@ function startPond(that) {
 	});
 }
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * Joins a channel
+ * @param  {Object} config -
+ * @param  {Object} that -
+ */
 function joinChannel(config, that) {
 	channels[config.url] = config;
 	irc.send('JOIN #' + config.url);
@@ -105,6 +118,12 @@ function joinChannel(config, that) {
 	}
 }
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * for callbacks
+ * @param  {Object} config -
+ * @param  {Object} that -
+ */
 function on(type, callback) {
 	if(!callbacks[type]) {
 		callbacks[type] = [];
@@ -112,6 +131,13 @@ function on(type, callback) {
 	callbacks[type][callbacks[type].length] = callback;
 }
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * for callbacks
+ * @param  {Object} type -
+ * @param  {Object} config -
+ * @param  {Object} that -
+ */
 function issueCallbacks(type, data, that) {
 	if(callbacks[type]) {
 		for(var i = 0, l = callbacks[type].length; i < l; ++i) {
@@ -127,6 +153,12 @@ function issueCallbacks(type, data, that) {
 
 var symbols = ['<', '>', '?', ',', "'", '='];
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * When a PRIVMSG event occurs
+ * @param  {Object} data -
+ * @param  {Object} that -
+ */
 on('PRIVMSG', function(data, that) {
 	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data["user"]) + "> " + data["message"]);
 	if(data["message"] == "!v5Reload" && data["user"] == "dillonea") {
@@ -135,7 +167,6 @@ on('PRIVMSG', function(data, that) {
 		data["interface"] = {
 			"name": "twitch",
 			"properties": {
-
 			}
 		};
 		var options = {
