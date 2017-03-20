@@ -23,6 +23,12 @@ module.exports = function() {
 		}
 	});
 
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	/**
+	 * Initial setup
+	 * @param  {Object} user -
+	 * @param  {Object} config -
+	 */
 	this.addInstance = function(user, config) {
 		users[user] = {};
 		if(config["unlimitedPonders"]) {
@@ -61,6 +67,14 @@ module.exports = function() {
 		users[user].countLeft = 0;
 	};
 
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	//TODO: factor out checking for badWords into it's own method? - wongjoel 2017-03-20
+	//TODO: parameterise !phelp response with messageInterval? - wongjoel 2017-03-20
+	/**
+	 * runs the command
+	 * @param  {Object} tags -
+	 * @returns
+	 */
 	this.runCommand = function(tags) {
 		if(users[tags["channel"]]) {
 			users[tags["channel"]].messagesLeft--;
@@ -134,16 +148,28 @@ module.exports = function() {
 		}
 	};
 
+	/**
+	 * pulls options from the command
+	 * @returns
+	 */
 	this.pullOptions = function() {
 		return {
 			"hal": megaHAL
 		};
 	};
 
+	/**
+	 * sets options of the command
+	 * @param options - the options to set on the command
+	 */
 	this.setOptions = function(options) {
 		megaHAL = options["hal"];
 	};
 
+	//TODO: fill out JSDoc - wongjoel 2017-03-20
+	/**
+	 * exit
+	 */
 	this.exit = function() {
 		return true;
 	};
@@ -151,6 +177,11 @@ module.exports = function() {
 };
 var chatLines;
 
+//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * load from IRC
+ * @param file -
+ */
 function loadFromIrc(file) {
 	debugger;
 	fs.readFile('./' + file, 'utf8', function(error, response) {
