@@ -1,0 +1,18 @@
+[
+    {
+        "user": "user1",
+        "message": "message1"
+    },
+    {
+        "user": "user2",
+        "message": "message2"
+    },
+    {
+        "user": "user1",
+        "message": "!ponder message3"
+    },
+    {
+        "user": "user2",
+        "message": "message3"
+    }
+]

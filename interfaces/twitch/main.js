@@ -12,7 +12,7 @@ var callbacks = [];
 var irc; //websocket connection to Twitch IRC chat server
 
 module.exports = function(config, main) {
-	this.connected = false;
+	this.connected = false; //indicates if a connection to twitch has been established
 	this._super = main;
 	this.username = config.username;
 	if(config.token) {

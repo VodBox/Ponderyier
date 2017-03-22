@@ -29,7 +29,7 @@ function processNextMessage(messages, router) {
     console.log(messageRecieved);
     const message = {
         "message": messageRecieved,
-        "commands": channels.get("data").commands
+        "commands": channels.get("channel1").commands
     };
     router.runCommand(message, (commandResponse) => {
         console.log("command's response is " + commandResponse);
@@ -59,7 +59,7 @@ function addChannel(channel, router) {
             }
         });
     });
-    fs.readFile('./interfaces/filesystem/data.json', 'utf-8', (err, data) => {
+    fs.readFile('./interfaces/filesystem/channel1.json', 'utf-8', (err, data) => {
         //Check for errors
         if (err) {
             console.log(err);
