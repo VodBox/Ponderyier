@@ -140,12 +140,12 @@ function on(type, callback) {
  */
 function issueCallbacks(type, data, that) {
 	if(callbacks[type]) {
-		for(var i = 0, l = callbacks[type].length; i < l; ++i) {
+		for(let i = 0, l = callbacks[type].length; i < l; ++i) {
 			callbacks[type][i](data, that);
 		}
 	}
 	if(callbacks['all'] && type == "all") {
-		for(var i = 0, l = callbacks['all'].length; i < l; ++i) {
+		for(let i = 0, l = callbacks['all'].length; i < l; ++i) {
 			callbacks['all'][i](data, that);
 		}
 	}

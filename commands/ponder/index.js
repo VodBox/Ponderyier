@@ -83,44 +83,10 @@ module.exports = function() {
 			if(tags["message"].startsWith('!ponder ')) {
 				if(users[tags["channel"]].unlimitedPonders.indexOf(tags["user"]) > -1) {
 					console.log('Unlimited Ponders');
-					var valid = false;
-					var attempts = 0;
-					var ponder;
-					while(!valid) {
-						ponder = megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
-						valid = true;
-						for(var i = 0, l = badWords.length; i < l; ++i) {
-							if(ponder.includes(badWords[i])) {
-								valid = false;
-							}
-						}
-						attempts++;
-						if(attempts == 30) {
-							valid = true;
-							ponder = "null";
-						}
-					}
-					return ponder;
+					return generatePonder(tags.message);
 				} else if(users[tags["channel"]].messagesLeft < 1) {
 					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
-					var valid = false;
-					var attempts = 0;
-					var ponder;
-					while(!valid) {
-						ponder = megaHAL.getReplyFromSentence(tags["message"].replace('/\!ponder /', ''));
-						valid = true;
-						for(var i = 0, l = badWords.length; i < l; ++i) {
-							if(ponder.includes(badWords[i])) {
-								valid = false;
-							}
-						}
-						attempts++;
-						if(attempts == 30) {
-							valid = true;
-							ponder = "null";
-						}
-					}
-					return ponder;
+					return generatePonder(tags.message);
 				} else if(users[tags["channel"]].countLeft < 1) {
 					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
 					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
@@ -176,6 +142,27 @@ module.exports = function() {
 	return this;
 };
 var chatLines;
+
+function generatePonder(message) {
+	var valid = false;
+	var attempts = 0;
+	var ponder;
+	while(!valid) {
+		ponder = megaHAL.getReplyFromSentence(message.replace('/\!ponder /', ''));
+		valid = true;
+		for(var i = 0, l = badWords.length; i < l; ++i) {
+			if(ponder.includes(badWords[i])) {
+				valid = false;
+			}
+		}
+		attempts++;
+		if(attempts >= 30) {
+			valid = true;
+			ponder = "null";
+		}
+	}
+	return ponder;
+}
 
 //TODO: fill out JSDoc - wongjoel 2017-03-20
 /**

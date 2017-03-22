@@ -1,13 +1,9 @@
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
-//TODO: should these be objects or maps or sets? - wongjoel 2017-03-20
-//TODO: var keyword on these objects? - wongjoel 2017-03-20
-//TODO: const keyword on these objects? - wongjoel 2017-03-20
-interfaces = {}; //object holding interface references.
-
-commandRefs = {}; //object holding command references
-savedOptions = {}; //object holding saved options
+const interfaces = {}; //object holding interface references.
+const commandRefs = {}; //object holding command references
+const savedOptions = {}; //object holding saved options
 
 module.exports = function() {
 	this.registerCommand = registerCommand;
@@ -23,39 +19,39 @@ module.exports = function() {
 function start(self) {
 	//Populate commandRefs from the command directory
 	fs.readdir('./commands/', function(err, files) {
-		for(var i = 0, l = files.length; i < l; ++i) {
-			var stats = fs.statSync('./commands/' + files[i]);
-			if(stats.isDirectory()) {
-				commandRefs[files[i]] = new require('./commands/' + files[i] + '/index.js')();
-				if(savedOptions && savedOptions[files[i]]) {
-					commandRefs[files[i]].setOptions(savedOptions[files[i]]);
+		files.forEach((file) => {
+			const isDir = fs.statSync('./commands/' + file).isDirectory();
+			if(isDir) {
+				commandRefs[file] = new require('./commands/' + file + '/index.js')();
+				if(savedOptions && savedOptions[file]) {
+					commandRefs[file].setOptions(savedOptions[file]);
 				}
 			}
-		}
+		});
 		//Populate interfaces from config.json
 		fs.readFile('./config.json', 'utf8', function(err, data) {
 			if(err) {
 				console.log(err);
 				process.exit();
 			} else {
-				var result = JSON.parse(data);
-				for(var key in result) {
+				const result = JSON.parse(data);
+				for(let key in result) {
 					interfaces[key] = new require("./interfaces/" + key + "/main.js")(result[key], self);
 				}
 			}
 		});
 		//Add channel configuration to interfaces from the channel directory
 		fs.readdir('./channels/', function(err, files) {
-			for(var i = 0, l = files.length; i < l; ++i) {
-				fs.readFile('./channels/' + files[i], function(error, response) {
-					var config = JSON.parse(response);
-					for(var key in config) {
+			files.forEach((file) => {
+				fs.readFile('./channels/' + file, function(err, response) {
+					const config = JSON.parse(response);
+					for(let key in config) {
 						if(key != "channel") {
-							interfaces[key].addChannel(config[key]);
+							interfaces[key].addChannel(config[key], self);
 						}
 					}
 				});
-			}
+			});
 		});
 	});
 }
@@ -107,7 +103,7 @@ function runCommand(options, callback) {
 }
 
 function reload() {
-
+	console.log("reload not implemented");
 }
 
 isDebugging(function(err, res) {

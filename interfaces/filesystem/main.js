@@ -9,7 +9,7 @@ module.exports = function(config, router) {
     this.addChannel = addChannel;
     runFilesystemChannel(this);
     return this;
-}
+};
 
 /**
  * Starts the filesystem interface
@@ -33,7 +33,7 @@ function processNextMessage(messages, router) {
     };
     router.runCommand(message, (commandResponse) => {
         console.log("command's response is " + commandResponse);
-    })
+    });
     if(messages.length > 0) {
         setTimeout(processNextMessage, 1000, messages, router);
     }
