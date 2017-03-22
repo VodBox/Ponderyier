@@ -3,17 +3,10 @@
  * primarily intended for testing purposes, and illustrating how an interface works.
  */
 const fs = require('fs');
-var messages; //An array of messages
+const channels = new Map();
 
-module.exports = function(config, main) {
-    /**
-     * addChannel is called when __
-     * @param {Object} channel 
-     */
-    this.addChannel = (channel) => {
-        console.log("filesystem addChannel has been called with argument " + channel);
-    }
-    this.router = main;
+module.exports = function(config, router) {
+    this.addChannel = addChannel;
     runFilesystemChannel(this);
     return this;
 }
@@ -25,6 +18,47 @@ module.exports = function(config, main) {
 function runFilesystemChannel(self) {
     console.log("Filesystem Channel started");
     //Read the data from the specified file
+}
+
+/**
+ * Processes the next message, then schedules the next message to be processed
+ * @param {Object} message 
+ */
+function processNextMessage(messages, router) {
+    const messageRecieved = messages.shift();
+    console.log(messageRecieved);
+    const message = {
+        "message": messageRecieved,
+        "commands": channels.get("data").commands
+    };
+    router.runCommand(message, (commandResponse) => {
+        console.log("command's response is " + commandResponse);
+    })
+    if(messages.length > 0) {
+        setTimeout(processNextMessage, 1000, messages, router);
+    }
+}
+
+/**
+ * addChannel is called when __
+ * @param {Object} channel 
+ */
+function addChannel(channel, router) {
+    console.log("filesystem addChannel has been called with argument " + channel);
+    console.log(channel);
+    channels.set(channel.id, channel);
+    channel.commands.forEach((commandOptions) => {
+        console.log(commandOptions);
+        router.registerCommand({
+            "command": commandOptions.command,
+            "reload": false,
+            "interface": {
+                "name": "filesystem",
+                "destination": channel.id,
+                "options": commandOptions.config
+            }
+        });
+    });
     fs.readFile('./interfaces/filesystem/data.json', 'utf-8', (err, data) => {
         //Check for errors
         if (err) {
@@ -32,20 +66,7 @@ function runFilesystemChannel(self) {
             return;
         }
         //parse the returned data as JSON, and store it in the messages array
-        messages = JSON.parse(data);
-        setTimeout(processNextMessage, 1000, messages.shift());
+        const messages = JSON.parse(data);
+        setTimeout(processNextMessage, 1000, messages, router);
     });
-}
-
-/**
- * Processes the next message, then schedules the next message to be processed
- * @param {Object} message 
- */
-function processNextMessage(message) {
-    // console.log("callback");
-    console.log(message);
-    let nextMessage = messages.shift();
-    if(nextMessage !== undefined) {
-        setTimeout(processNextMessage, 1000, nextMessage);
-    }
 }
