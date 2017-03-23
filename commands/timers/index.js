@@ -32,14 +32,14 @@ module.exports = function() {
 			}
 			if(tags.mod == '1' || tags.user == chat) {
 				let response = "";
-				if(message.match(/\!timer\sadd\s(\S+)\s(.+)$/i)) {
+				if(message.match(/^\!timer\sadd\s(\S+)\s(.+)$/i)) {
 					let timerOptions = {};
 					timerOptions.uuid = uuid();
-					timerOptions.name = message.match(/\!timer\sadd\s(\S+)\s(.+)$/i)[1];
+					timerOptions.name = message.match(/^\!timer\sadd\s(\S+)\s(.+)$/i)[1];
 					timerOptions.timeCooldown = (15 * 60);
 					timerOptions.messageCooldown = 12;
 					timerOptions.messagesSinceTimerStart = 0;
-					let theRest = message.match(/\!timer\sadd\s(\S+)\s(.+)$/i)[2];
+					let theRest = message.match(/^\!timer\sadd\s(\S+)\s(.+)$/i)[2];
 					let justMessage = false;
 					while(!justMessage) {
 						if(theRest.match(/^\-\-(.+?)\=(.+?)\s/)) {
