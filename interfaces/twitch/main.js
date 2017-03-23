@@ -31,7 +31,7 @@ module.exports = function(config, main) {
 	}
 	this.addChannel = function(channel) {
 		if(connected) {
-			joinChannel(channel); //TODO: is there a missing parameter here? - wongjoel 2017-03-20
+			joinChannel(channel, main); //TODO: is there a missing parameter here? - wongjoel 2017-03-20
 		} else {
 			joinQueue[joinQueue.length] = channel;
 		}
