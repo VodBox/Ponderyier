@@ -1,29 +1,30 @@
 {
-	"name": "ponderyier",
-	"version": "1.0.0",
-	"description": "PondV5 - Scaleable Twitch Bot",
-	"main": "index.js",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/VodBox/Ponderyier.git"
-	},
-	"author": "VodBox (Dillon)",
-	"license": "GPL-3.0",
-	"bugs": {
-		"url": "https://github.com/VodBox/Ponderyier/issues"
-	},
-	"homepage": "https://github.com/VodBox/Ponderyier#readme",
-	"dependencies": {
-		"jsmegahal": "^1.2.4",
-		"lupus": "0.0.1",
-		"ws": "^1.1.1"
-	},
-	"optionalDependencies": {
-		"heapdump": "^0.3.7",
-		"bufferutil": "^1.3.0",
-		"utf-8-validate": "^2.0.0"
-	}
+  "name": "ponderyier",
+  "version": "1.0.0",
+  "description": "PondV5 - Scaleable Twitch Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VodBox/Ponderyier.git"
+  },
+  "author": "VodBox (Dillon)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/VodBox/Ponderyier/issues"
+  },
+  "homepage": "https://github.com/VodBox/Ponderyier#readme",
+  "dependencies": {
+    "jsmegahal": "^1.2.4",
+    "lupus": "0.0.1",
+    "uuid": "^3.0.1",
+    "ws": "^1.1.1"
+  },
+  "optionalDependencies": {
+    "heapdump": "^0.3.7",
+    "bufferutil": "^1.3.0",
+    "utf-8-validate": "^2.0.0"
+  }
 }

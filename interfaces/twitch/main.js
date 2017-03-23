@@ -15,6 +15,7 @@ module.exports = function(config, main) {
 	this.connected = false; //indicates if a connection to twitch has been established
 	this._super = main;
 	this.username = config.username;
+	this.sendMessage = sendMessage;
 	if(config.token) {
 		this.oauthToken = config.token;
 		startPond();
@@ -178,3 +179,8 @@ on('PRIVMSG', function(data, that) {
 		});
 	}
 });
+
+// REMOVE THIS. TEMPORARY.
+function sendMessage(channel, message) {
+	irc.send('PRIVMSG #' + channel + ' :' + message);
+}

@@ -5,10 +5,14 @@ const interfaces = {}; //object holding interface references.
 const commandRefs = {}; //object holding command references
 const savedOptions = {}; //object holding saved options
 
+var self;
+
 module.exports = function() {
 	this.registerCommand = registerCommand;
 	this.runCommand = runCommand;
 	this.reload = reload;
+	this.interfaces = interfaces;
+	self = this;
 	start(this);
 };
 
@@ -22,7 +26,10 @@ function start(self) {
 		files.forEach((file) => {
 			const isDir = fs.statSync('./commands/' + file).isDirectory();
 			if(isDir) {
-				commandRefs[file] = new require('./commands/' + file + '/index.js')();
+				commandRefs[file] = new (require('./commands/' + file + '/index.js'))();
+				if(commandRefs.ponder) {
+					console.log(commandRefs.ponder.exists);
+				}
 				if(savedOptions && savedOptions[file]) {
 					commandRefs[file].setOptions(savedOptions[file]);
 				}
@@ -76,11 +83,12 @@ function registerCommand(options) {
 			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
 			for(var i = 0, l = instanceCache.length; i < l; ++i) {
 				if(instanceCache[i] !== options.interface) {
-					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, commandRefs[options.command]);
+					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command]);
 				}
 			}
+		} else {
+			commandRefs[options.command].addInstance(options.interface.destination, options.interface.options, self, commandRefs[options.command]);
 		}
-		commandRefs[options.command].addInstance(options.interface.destination, options.interface.options, commandRefs[options.command]);
 	}
 }
 
@@ -94,7 +102,7 @@ function registerCommand(options) {
  */
 function runCommand(options, callback) {
 	for(var i = 0, l = options.commands.length; i < l; ++i) {
-		var commandResponse = commandRefs[options.commands[i].command].runCommand(options.message);
+		var commandResponse = commandRefs[options.commands[i].command].runCommand(options.message, self);
 		if(commandResponse) {
 			callback(commandResponse);
 			break;

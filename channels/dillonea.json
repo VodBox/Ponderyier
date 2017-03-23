@@ -4,7 +4,7 @@
 		"url": "dillonea",
 		"commands" : [
 			{
-				"command": "ponder", 
+				"command": "ponder",
 				"config": {
 					"resetTime": 1600,
 					"messageInterval": 30,
@@ -16,6 +16,24 @@
 					],
 					"unlimitedPonders": [
 						"dillonea"
+					]
+				}
+			},
+			{
+				"command": "timers",
+				"config": {
+					"ignores": [
+						"ponderyier",
+						"nightbot"
+					],
+					"timers": [
+						{
+							"uuid": "f01c5982-7564-4e86-91b2-7cee0990ac36",
+							"message": "This is the test message",
+							"name": "test",
+							"timeCooldown": 100,
+							"messageCooldown": 2
+						}
 					]
 				}
 			}
