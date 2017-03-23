@@ -31,33 +31,33 @@ module.exports = function() {
 	 */
 	this.addInstance = function(user, config) {
 		users[user] = {};
-		if(config["unlimitedPonders"]) {
-			users[user].unlimitedPonders = config["unlimitedPonders"];
+		if(config.unlimitedPonders) {
+			users[user].unlimitedPonders = config.unlimitedPonders;
 		} else {
 			users[user].unlimitedPonders = [];
 		}
-		if(config["resetTime"]) {
-			users[user].resetTime = config["resetTime"];
+		if(config.resetTime) {
+			users[user].resetTime = config.resetTime;
 		} else {
 			users[user].resetTime = 1600; // GMT
 		}
-		if(config["messageInterval"]) {
-			users[user].messageInterval = config["messageInterval"];
+		if(config.messageInterval) {
+			users[user].messageInterval = config.messageInterval;
 		} else {
 			users[user].messageInterval = 30;
 		}
-		if(config["helpInterval"]) {
-			users[user].helpInterval = config["helpInterval"];
+		if(config.helpInterval) {
+			users[user].helpInterval = config.helpInterval;
 		} else {
 			users[user].helpInterval = 15;
 		}
-		if(config["countInterval"]) {
-			users[user].countInterval = config["countInterval"];
+		if(config.countInterval) {
+			users[user].countInterval = config.countInterval;
 		} else {
 			users[user].countInterval = 10;
 		}
-		if(config["ignores"]) {
-			users[user].ignores = config["ignores"];
+		if(config.ignores) {
+			users[user].ignores = config.ignores;
 		} else {
 			users[user].ignores = [];
 		}
@@ -76,40 +76,41 @@ module.exports = function() {
 	 * @returns
 	 */
 	this.runCommand = function(tags) {
-		if(users[tags["channel"]]) {
-			users[tags["channel"]].messagesLeft--;
-			users[tags["channel"]].helpLeft--;
-			users[tags["channel"]].countLeft--;
-			if(tags["message"].startsWith('!ponder ')) {
-				if(users[tags["channel"]].unlimitedPonders.indexOf(tags["user"]) > -1) {
+		if(users[tags.channel]) {
+			users[tags.channel].messagesLeft--;
+			users[tags.channel].helpLeft--;
+			users[tags.channel].countLeft--;
+			let result;
+			if(tags.message.startsWith('!ponder ')) {
+				if(users[tags.channel].unlimitedPonders.indexOf(tags.user) > -1) {
 					console.log('Unlimited Ponders');
 					return generatePonder(tags.message);
-				} else if(users[tags["channel"]].messagesLeft < 1) {
-					users[tags["channel"]].messagesLeft = users[tags["channel"]].messageInterval;
+				} else if(users[tags.channel].messagesLeft < 1) {
+					users[tags.channel].messagesLeft = users[tags.channel].messageInterval;
 					return generatePonder(tags.message);
-				} else if(users[tags["channel"]].countLeft < 1) {
-					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
-					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
+				} else if(users[tags.channel].countLeft < 1) {
+					result =  "There are " + Math.max(users[tags.channel].messagesLeft, 0) + " messages left till the next !ponder";
+					users[tags.channel].countLeft = users[tags.channel].countInterval;
 					return result;
 				}
-			} else if(tags["message"] == "!pcount") {
-				if(users[tags["channel"]].countLeft < 1) {
-					var result =  "There are " + Math.max(users[tags["channel"]].messagesLeft, 0) + " messages left till the next !ponder";
-					users[tags["channel"]].countLeft = users[tags["channel"]].countInterval;
+			} else if(tags.message == "!pcount") {
+				if(users[tags.channel].countLeft < 1) {
+					result =  "There are " + Math.max(users[tags.channel].messagesLeft, 0) + " messages left till the next !ponder";
+					users[tags.channel].countLeft = users[tags.channel].countInterval;
 					return result;
 				}
-			} else if(tags["message"] == "!phelp") {
-				if(users[tags["channel"]].helpLeft < 1) {
-					users[tags["channel"]].helpLeft = users[tags["channel"]].helpInterval;
+			} else if(tags.message == "!phelp") {
+				if(users[tags.channel].helpLeft < 1) {
+					users[tags.channel].helpLeft = users[tags.channel].helpInterval;
 					return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 				}
-			} else if(tags["message"].startsWith("!load ") && tags["user"] == "dillonea") {
-				loadFromIrc(tags["message"].replace("!load ", ""));
-				return "Loading from " + tags["message"].replace("!load ", "") + "...";
+			} else if(tags.message.startsWith("!load ") && tags.user == "dillonea") {
+				loadFromIrc(tags.message.replace("!load ", ""));
+				return "Loading from " + tags.message.replace("!load ", "") + "...";
 			}
 
-			if(users[tags["channel"]].ignores.indexOf(tags["user"]) < 0) {
-				megaHAL.add(tags["message"]);
+			if(users[tags.channel].ignores.indexOf(tags.user) < 0) {
+				megaHAL.add(tags.message);
 			}
 		}
 	};
@@ -129,7 +130,7 @@ module.exports = function() {
 	 * @param options - the options to set on the command
 	 */
 	this.setOptions = function(options) {
-		megaHAL = options["hal"];
+		megaHAL = options.hal;
 	};
 
 	//TODO: fill out JSDoc - wongjoel 2017-03-20
@@ -170,14 +171,13 @@ function generatePonder(message) {
  * @param file -
  */
 function loadFromIrc(file) {
-	debugger;
 	fs.readFile('./' + file, 'utf8', function(error, response) {
 		if(error) {
 			console.log(error);
 		} else {
-			chatLines = response.match(/\d+\-\d+\:\d+\:\d+\<.(\S+)\>\s(.+)\n/g);
+			chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
 			lupus(0, chatLines.length, function(n) {
-				addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+\<.\S+\>\s(.+)\n/)[1];
+				addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+<.\S+>\s(.+)\n/)[1];
 				megaHAL.add(addLine);
 			});
 		}
