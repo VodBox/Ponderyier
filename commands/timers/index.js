@@ -52,9 +52,41 @@ module.exports = function() {
 					}
 					chats[chat].timers[timerOptions.uuid] = timerOptions;
 					runTimer(chat, timerOptions.uuid, _super, tags.interface.name);
-					response = "Timer added";
+					response = "Timer added - uuid:" + timerOptions.uuid;
+				} else if(message.match(/^\!timer\sdel\s(\S+)$/i)) {
+					let deletes = [];
+					let match = message.match(/^\!timer\sdel\s(\S+)$/i);
+					if(match[1].startsWith("uuid:")) {
+						for(let timer in timers) {
+							if(timer == match[1].replace(/^uuid\:/, "")) {
+								clearInterval(timers[timer]);
+								delete timers[timer];
+								delete chats[chat].timers[timer];
+								response = "Timer deleted.";
+							}
+						}
+						if(response === "") {
+							response = "No timer found with that uuid.";
+						}
+					} else {
+						for(let timer in timers) {
+							if(match[1] == chats[chat].timers[timer].name) {
+								deletes[deletes.length] = timer;
+							}
+						}
+						if(deletes.length == 1) {
+							clearInterval(timers[deletes[0]])
+							delete timers[deletes[0]];
+							delete chats[chat].timers[deletes[0]];
+							response = "Timer deleted.";
+						} else if(deletes.length > 1) {
+							response = "Multiple timers with that name. Please specify uuid.";
+						} else {
+							response = "No timer found with that name.";
+						}
+					}
 				}
-				if(response != "") {
+				if(response !== "") {
 					return response;
 				}
 			}
@@ -95,6 +127,9 @@ function clearTimers() {
 
 function runTimer(chat, uuid, _super, interface) {
 	timers[uuid] = setInterval(function() {
-		_super.interfaces[interface].sendMessage(chat, chats[chat].timers[uuid].message);
+		if(chats[chat].timers[uuid].messagesSinceTimerStart >= chats[chat].timers[uuid].messageCooldown) {
+			_super.interfaces[interface].sendMessage(chat, chats[chat].timers[uuid].message);
+			chats[chat].timers[uuid].messagesSinceTimerStart = 0;
+		}
 	}, chats[chat].timers[uuid].timeCooldown * 1000);
 }
