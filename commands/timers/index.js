@@ -51,7 +51,7 @@ module.exports = function() {
 						}
 					}
 					chats[chat].timers[timerOptions.uuid] = timerOptions;
-					runTimer(chat, timerOptions.uuid, _super);
+					runTimer(chat, timerOptions.uuid, _super, tags.interface.name);
 					response = "Timer added";
 				}
 				if(response != "") {
@@ -64,16 +64,19 @@ module.exports = function() {
 
 	this.pullOptions = function() {
 		return {
-			chats: chats,
-			timers: timers
+			chats: chats
 		};
 	};
 
 	this.setOptions = function(options) {
 		clearTimers();
-		if(options.users) {
+		if(options.chats) {
 			chats = options.chats;
-			timers = options.timers;
+			for(let chat in chats) {
+				for(let i = 0, l = chats[chat].timers.length; i < l; ++i) {
+					runTimer(chat, chats[chat].timers[i].uuid, _super);
+				}
+			}
 		}
 	};
 
@@ -84,11 +87,14 @@ module.exports = function() {
 };
 
 function clearTimers() {
-
+	for(let timer in timers) {
+		clearInterval(timers[timer]);
+		timers = {};
+	}
 }
 
-function runTimer(chat, uuid, _super) {
+function runTimer(chat, uuid, _super, interface) {
 	timers[uuid] = setInterval(function() {
-		_super.interfaces.twitch.sendMessage('dillonea', chats[chat].timers[uuid].message);
+		_super.interfaces[interface].sendMessage(chat, chats[chat].timers[uuid].message);
 	}, chats[chat].timers[uuid].timeCooldown * 1000);
 }
