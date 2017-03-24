@@ -16,6 +16,9 @@ module.exports = function(config, main) {
 	this._super = main;
 	this.username = config.username;
 	this.sendMessage = sendMessage;
+	this.purgeUser = purgeUser;
+	this.kickUser = kickUser;
+	this.banUser = banUser;
 	if(config.token) {
 		this.oauthToken = config.token;
 		startPond();
@@ -74,16 +77,16 @@ function startPond(that) {
 					var contents = data.replace(tagPart + " ", "").split(/\:(.+)/)[1].split(/\:(.+)/);
 					//console.log(contents);
 					if(contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)) {
-						tags["type"] = contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)[1];
-						tags["channel"] = contents[0].match(/tmi.twitch.tv .+ \#(\S+) /)[1];
-						tags["user"] = contents[0].split("!")[0];
-						tags["message"] = contents[1];
+						tags.type = contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)[1];
+						tags.channel = contents[0].match(/tmi.twitch.tv .+ \#(\S+) /)[1];
+						tags.user = contents[0].split("!")[0];
+						tags.message = contents[1];
 					} else {
-						tags["message"] = "";
+						tags.message = "";
 					}
-					issueCallbacks(tags["type"], tags, that);
+					issueCallbacks(tags.type, tags, that);
 					//console.log(tags);
-					//console.log(tags.channel + ": <" + (tags["display-name"] ? tags["display-name"] : tags["user"]) + "> " + tags["message"]);
+					//console.log(tags.channel + ": <" + (tags.display-name ? tags.display-name : tags.user) + "> " + tags.message);
 				}
 			}
 		});
@@ -145,9 +148,9 @@ function issueCallbacks(type, data, that) {
 			callbacks[type][i](data, that);
 		}
 	}
-	if(callbacks['all'] && type == "all") {
-		for(let i = 0, l = callbacks['all'].length; i < l; ++i) {
-			callbacks['all'][i](data, that);
+	if(callbacks.all && type == "all") {
+		for(let i = 0, l = callbacks.all.length; i < l; ++i) {
+			callbacks.all[i](data, that);
 		}
 	}
 }
@@ -161,26 +164,37 @@ var symbols = ['<', '>', '?', ',', "'", '='];
  * @param  {Object} that -
  */
 on('PRIVMSG', function(data, that) {
-	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data["user"]) + "> " + data["message"]);
-	if(data["message"] == "!v5Reload" && data["user"] == "dillonea") {
+	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data.user) + "> " + data.message);
+	if(data.message == "!v5Reload" && data.user == "dillonea") {
 		that._super.reload();
 	} else {
-		data["interface"] = {
+		data.interface = {
 			"name": "twitch",
 			"properties": {
 			}
 		};
 		var options = {
 			"message": data,
-			"commands": channels[data["channel"]].commands
+			"commands": channels[data.channel].commands
 		};
 		that._super.runCommand(options, function(result) {
-			irc.send('PRIVMSG #' + data["channel"] + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
+			irc.send('PRIVMSG #' + data.channel + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
 		});
 	}
 });
 
-// REMOVE THIS. TEMPORARY.
 function sendMessage(channel, message) {
-	irc.send('PRIVMSG #' + channel + ' :' + message);
+	irc.send('PRIVMSG #' + channel + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - "  + message);
+}
+
+function purgeUser(channel, user) {
+	irc.send('PRIVMSG #' + channel + ' :.timeout ' + user + ' 1');
+}
+
+function banUser(channel, user) {
+	irc.send('PRIVMSG #' + channel + ' :.ban ' + user);
+}
+
+function kickUser(channel, user) {
+	irc.send('PRIVMSG #' + channel + ' :.timeout ' + user);
 }
