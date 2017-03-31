@@ -47,3 +47,4 @@ heapdump*
 build/
 
 out/
+config.db

@@ -19,6 +19,7 @@
   "dependencies": {
     "jsmegahal": "^1.2.4",
     "lupus": "0.0.1",
+    "nedb": "^1.8.0",
     "uuid": "^3.0.1",
     "ws": "^1.1.1"
   },
