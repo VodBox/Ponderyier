@@ -11,9 +11,9 @@ var callbacks = [];
 
 var irc; //websocket connection to Twitch IRC chat server
 
-module.exports = function(config, main) {
+module.exports = function(config, manager) {
 	this.connected = false; //indicates if a connection to twitch has been established
-	this._super = main;
+	this.manager = manager;
 	this.username = config.username;
 	this.sendMessage = sendMessage;
 	this.purgeUser = purgeUser;
@@ -35,7 +35,7 @@ module.exports = function(config, main) {
 	}
 	this.addChannel = function(channel) {
 		if(connected) {
-			joinChannel(channel, main); //TODO: is there a missing parameter here? - wongjoel 2017-03-20
+			joinChannel(channel, manager);
 		} else {
 			joinQueue[joinQueue.length] = channel;
 		}
@@ -95,7 +95,7 @@ function startPond(that) {
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 		that.connected = true;
 		for(var i = 0, l = joinQueue.length; i < l; ++i) {
-			joinChannel(joinQueue[i], that);
+			joinChannel(joinQueue[i], that.manager);
 		}
 	});
 }
@@ -104,13 +104,13 @@ function startPond(that) {
 /**
  * Joins a channel
  * @param  {Object} config -
- * @param  {Object} that -
+ * @param  {Object} manager -
  */
-function joinChannel(config, that) {
+function joinChannel(config, manager) {
 	channels[config.url] = config;
 	irc.send('JOIN #' + config.url);
 	for(var x = 0, j = config.commands.length; x < j; ++x) {
-		that._super.registerCommand({
+		manager.registerCommand({
 			"command": config.commands[x].command,
 			"reload": false,
 			"interface": {
@@ -166,7 +166,7 @@ var symbols = ['<', '>', '?', ',', "'", '='];
 on('PRIVMSG', function(data, that) {
 	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data.user) + "> " + data.message);
 	if(data.message == "!v5Reload" && data.user == "dillonea") {
-		that._super.reload();
+		that.manager.reload();
 	} else {
 		data.interface = {
 			"name": "twitch",
@@ -177,7 +177,7 @@ on('PRIVMSG', function(data, that) {
 			"message": data,
 			"commands": channels[data.channel].commands
 		};
-		that._super.runCommand(options, function(result) {
+		that.manager.runCommand(options, function(result) {
 			irc.send('PRIVMSG #' + data.channel + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
 		});
 	}
