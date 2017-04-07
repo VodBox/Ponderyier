@@ -1,3 +1,4 @@
+/** Entry point into Ponderyier */
 const fs = require('fs');
 const path = require('path');
 

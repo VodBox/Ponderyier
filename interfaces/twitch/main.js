@@ -1,3 +1,4 @@
+/**Twitch Interface */
 var fs = require('fs');
 var WebSocket = require('ws');
 var path = require('path');

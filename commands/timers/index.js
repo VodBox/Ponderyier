@@ -1,3 +1,4 @@
+/**Timer Command */
 var chats = {}; // This can theoretically change
 var timers = {}; // This can theoretically change
 

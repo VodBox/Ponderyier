@@ -1,3 +1,4 @@
+/**Ponder Command */
 var hal = require('jsmegahal');
 var zlib = require('zlib');
 var fs = require('fs');

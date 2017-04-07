@@ -1,3 +1,4 @@
+/**Database Manager */
 const Datastore = require('nedb');
 var db;
 
