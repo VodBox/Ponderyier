@@ -5,7 +5,7 @@ var fs = require('fs');
 
 var lupus = require('lupus');
 
-var users = {};
+var chatRooms = {};
 
 var messageStore = [];
 
@@ -67,47 +67,47 @@ function addInstance(user, config) {
 	console.log("add instance config: ");
 	console.log(config);
 	console.log("users before: ");
-	console.log(users);
-	let inputUser = {};
+	console.log(chatRooms);
+	let inputChatRoom = {};
 	if(config.unlimitedPonders) {
-		inputUser.unlimitedPonders = config.unlimitedPonders;
+		inputChatRoom.unlimitedPonders = config.unlimitedPonders;
 	} else {
-		inputUser.unlimitedPonders = [];
+		inputChatRoom.unlimitedPonders = [];
 	}
 	if(config.resetTime) {
-		inputUser.resetTime = config.resetTime;
+		inputChatRoom.resetTime = config.resetTime;
 	} else {
-		inputUser.resetTime = 1600; // GMT
+		inputChatRoom.resetTime = 1600; // GMT
 	}
 	if(config.messageInterval) {
-		inputUser.messageInterval = config.messageInterval;
+		inputChatRoom.messageInterval = config.messageInterval;
 	} else {
-		inputUser.messageInterval = 30;
+		inputChatRoom.messageInterval = 30;
 	}
 	if(config.helpInterval) {
-		inputUser.helpInterval = config.helpInterval;
+		inputChatRoom.helpInterval = config.helpInterval;
 	} else {
-		inputUser.helpInterval = 15;
+		inputChatRoom.helpInterval = 15;
 	}
 	if(config.countInterval) {
-		inputUser.countInterval = config.countInterval;
+		inputChatRoom.countInterval = config.countInterval;
 	} else {
-		inputUser.countInterval = 10;
+		inputChatRoom.countInterval = 10;
 	}
 	if(config.ignores) {
-		inputUser.ignores = config.ignores;
+		inputChatRoom.ignores = config.ignores;
 	} else {
-		inputUser.ignores = [];
+		inputChatRoom.ignores = [];
 	}
 
-	inputUser.messagesLeft = 0;
-	inputUser.helpLeft = 0;
-	inputUser.countLeft = 0;
+	inputChatRoom.messagesLeft = 0;
+	inputChatRoom.helpLeft = 0;
+	inputChatRoom.countLeft = 0;
 
-	users[user] = inputUser;
+	chatRooms[user] = inputChatRoom;
 
 	console.log("users after: ");
-	console.log(users);
+	console.log(chatRooms);
 };
 
 
@@ -119,43 +119,44 @@ function addInstance(user, config) {
  * @returns
  */
 function runCommand(tags) {
-	let channel = tags.channel;
 	let message = tags.message;
-	if(users[tags.channel]) {
-		users[tags.channel].messagesLeft--;
-		users[tags.channel].helpLeft--;
-		users[tags.channel].countLeft--;
+	let user = tags.user;
+	let channel = chatRooms[tags.channel];
+	if(channel) {
+		channel.messagesLeft--;
+		channel.helpLeft--;
+		channel.countLeft--;
 		let result;
-		if(tags.message.startsWith('!ponder ')) {
-			if(users[tags.channel].unlimitedPonders.indexOf(tags.user) > -1) {
+		if(message.startsWith('!ponder ')) {
+			if(channel.unlimitedPonders.indexOf(user) > -1) {
 				console.log('Unlimited Ponders');
-				return generatePonder(tags.message);
-			} else if(users[tags.channel].messagesLeft < 1) {
-				users[tags.channel].messagesLeft = users[tags.channel].messageInterval;
-				return generatePonder(tags.message);
-			} else if(users[tags.channel].countLeft < 1) {
-				result =  "There are " + Math.max(users[tags.channel].messagesLeft, 0) + " messages left till the next !ponder";
-				users[tags.channel].countLeft = users[tags.channel].countInterval;
+				return generatePonder(message);
+			} else if(channel.messagesLeft < 1) {
+				channel.messagesLeft = channel.messageInterval;
+				return generatePonder(message);
+			} else if(channel.countLeft < 1) {
+				result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+				channel.countLeft = channel.countInterval;
 				return result;
 			}
-		} else if(tags.message == "!pcount") {
-			if(users[tags.channel].countLeft < 1) {
-				result =  "There are " + Math.max(users[tags.channel].messagesLeft, 0) + " messages left till the next !ponder";
-				users[tags.channel].countLeft = users[tags.channel].countInterval;
+		} else if(message == "!pcount") {
+			if(channel.countLeft < 1) {
+				result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+				channel.countLeft = channel.countInterval;
 				return result;
 			}
-		} else if(tags.message == "!phelp") {
-			if(users[tags.channel].helpLeft < 1) {
-				users[tags.channel].helpLeft = users[tags.channel].helpInterval;
+		} else if(message == "!phelp") {
+			if(channel.helpLeft < 1) {
+				channel.helpLeft = channel.helpInterval;
 				return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 			}
-		} else if(tags.message.startsWith("!load ") && tags.user == "dillonea") {
-			loadFromIrc(tags.message.replace("!load ", ""));
-			return "Loading from " + tags.message.replace("!load ", "") + "...";
+		} else if(message.startsWith("!load ") && user == "dillonea") {
+			loadFromIrc(message.replace("!load ", ""));
+			return "Loading from " + message.replace("!load ", "") + "...";
 		}
 
-		if(users[tags.channel].ignores.indexOf(tags.user) < 0) {
-			megaHAL.add(tags.message);
+		if(channel.ignores.indexOf(user) < 0) {
+			megaHAL.add(message);
 		}
 	}
 };
