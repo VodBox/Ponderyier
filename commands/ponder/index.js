@@ -166,18 +166,13 @@ function runCommand(tags) {
  * @param file -
  */
 function generatePonder(message) {
-	let valid = false;
+	let badWordFound = true;
 	let attempts = 0;
 	let ponder;
-	while(!valid) {
+	while(badWordFound) {
 		ponder = megaHAL.getReplyFromSentence(message.replace('/\!ponder /', ''));
-		// console.log("ponder candidate: " + ponder);
-		valid = true;
-		let badWord = badWords.find((badWord) => {return ponder.includes(badWord)});
-		if(badWord) {
-			// console.log("ponder rejected because of badword: " + badWord);
-			valid = false;
-		}
+		let badWord = badWords.find(badWord => ponder.includes(badWord));
+		badWordFound = badWord ? true : false
 		attempts++;
 		if(attempts >= 30) {
 			return "null";
