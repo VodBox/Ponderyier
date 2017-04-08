@@ -166,22 +166,21 @@ function runCommand(tags) {
  * @param file -
  */
 function generatePonder(message) {
-	var valid = false;
-	var attempts = 0;
-	var ponder;
+	let valid = false;
+	let attempts = 0;
+	let ponder;
 	while(!valid) {
 		ponder = megaHAL.getReplyFromSentence(message.replace('/\!ponder /', ''));
-		console.log(ponder);
+		// console.log("ponder candidate: " + ponder);
 		valid = true;
-		for(var i = 0, l = badWords.length; i < l; ++i) {
-			if(ponder.includes(badWords[i])) {
-				valid = false;
-			}
+		let badWord = badWords.find((badWord) => {return ponder.includes(badWord)});
+		if(badWord) {
+			// console.log("ponder rejected because of badword: " + badWord);
+			valid = false;
 		}
 		attempts++;
 		if(attempts >= 30) {
-			valid = true;
-			ponder = "null";
+			return "null";
 		}
 	}
 	return ponder;
