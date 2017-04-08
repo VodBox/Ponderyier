@@ -59,8 +59,8 @@ module.exports = function() {
 //TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
  * Initial setup
- * @param  {Object} user -
- * @param  {Object} config -
+ * @param  {Object} user - name of chat room
+ * @param  {Object} config - config file
  */
 function addInstance(user, config) {
 	console.log("add instance: " + user);
@@ -68,47 +68,54 @@ function addInstance(user, config) {
 	console.log(config);
 	console.log("users before: ");
 	console.log(chatRooms);
-	let inputChatRoom = {};
-	if(config.unlimitedPonders) {
-		inputChatRoom.unlimitedPonders = config.unlimitedPonders;
-	} else {
-		inputChatRoom.unlimitedPonders = [];
-	}
-	if(config.resetTime) {
-		inputChatRoom.resetTime = config.resetTime;
-	} else {
-		inputChatRoom.resetTime = 1600; // GMT
-	}
-	if(config.messageInterval) {
-		inputChatRoom.messageInterval = config.messageInterval;
-	} else {
-		inputChatRoom.messageInterval = 30;
-	}
-	if(config.helpInterval) {
-		inputChatRoom.helpInterval = config.helpInterval;
-	} else {
-		inputChatRoom.helpInterval = 15;
-	}
-	if(config.countInterval) {
-		inputChatRoom.countInterval = config.countInterval;
-	} else {
-		inputChatRoom.countInterval = 10;
-	}
-	if(config.ignores) {
-		inputChatRoom.ignores = config.ignores;
-	} else {
-		inputChatRoom.ignores = [];
-	}
-
-	inputChatRoom.messagesLeft = 0;
-	inputChatRoom.helpLeft = 0;
-	inputChatRoom.countLeft = 0;
-
-	chatRooms[user] = inputChatRoom;
+	chatRooms[user] = readConfigOrDefault(config);
 
 	console.log("users after: ");
 	console.log(chatRooms);
 };
+
+/**
+ * return a complete config object, replacing any missing values with defaults
+ * @param  {Object} config - config file
+ */
+function readConfigOrDefault(config) {
+    let chatConfig = {};
+    if(config.unlimitedPonders) {
+        chatConfig.unlimitedPonders = config.unlimitedPonders;
+    } else {
+        chatConfig.unlimitedPonders = [];
+    }
+    if(config.resetTime) {
+        chatConfig.resetTime = config.resetTime;
+    } else {
+        chatConfig.resetTime = 1600; // GMT
+    }
+    if(config.messageInterval) {
+        chatConfig.messageInterval = config.messageInterval;
+    } else {
+        chatConfig.messageInterval = 30;
+    }
+    if(config.helpInterval) {
+        chatConfig.helpInterval = config.helpInterval;
+    } else {
+        chatConfig.helpInterval = 15;
+    }
+    if(config.countInterval) {
+        chatConfig.countInterval = config.countInterval;
+    } else {
+        chatConfig.countInterval = 10;
+    }
+    if(config.ignores) {
+        chatConfig.ignores = config.ignores;
+    } else {
+        chatConfig.ignores = [];
+    }
+
+    chatConfig.messagesLeft = 0;
+    chatConfig.helpLeft = 0;
+    chatConfig.countLeft = 0;
+    return chatConfig
+}
 
 
 //TODO: fill out JSDoc - wongjoel 2017-03-20
@@ -172,7 +179,7 @@ function generatePonder(message) {
 	while(badWordFound) {
 		ponder = megaHAL.getReplyFromSentence(message.replace('/\!ponder /', ''));
 		let badWord = badWords.find(badWord => ponder.includes(badWord));
-		badWordFound = badWord ? true : false
+		badWordFound = badWord ? true : false;
 		attempts++;
 		if(attempts >= 30) {
 			return "null";
