@@ -80,49 +80,35 @@ function addInstance(user, config) {
  */
 function readConfigOrDefault(config) {
     let chatConfig = {};
-    if(config.unlimitedPonders) {
-        chatConfig.unlimitedPonders = config.unlimitedPonders;
-    } else {
-        chatConfig.unlimitedPonders = [];
-    }
-    if(config.resetTime) {
-        chatConfig.resetTime = config.resetTime;
-    } else {
-        chatConfig.resetTime = 1600; // GMT
-    }
-    if(config.messageInterval) {
-        chatConfig.messageInterval = config.messageInterval;
-    } else {
-        chatConfig.messageInterval = 30;
-    }
-    if(config.helpInterval) {
-        chatConfig.helpInterval = config.helpInterval;
-    } else {
-        chatConfig.helpInterval = 15;
-    }
-    if(config.countInterval) {
-        chatConfig.countInterval = config.countInterval;
-    } else {
-        chatConfig.countInterval = 10;
-    }
-    if(config.ignores) {
-        chatConfig.ignores = config.ignores;
-    } else {
-        chatConfig.ignores = [];
-    }
-
+    chatConfig.unlimitedPonders = getValueOrDefault(config.unlimitedPonders, []);
+    chatConfig.resetTime = getValueOrDefault(config.resetTime, 1600); // GMT
+    chatConfig.messageInterval = getValueOrDefault(config.messageInterval, 30);
+    chatConfig.helpInterval = getValueOrDefault(config.helpInterval, 15);
+    chatConfig.countInterval = getValueOrDefault(config.countInterval, 10);
+    chatConfig.ignores = getValueOrDefault(config.ignores, []);
     chatConfig.messagesLeft = 0;
     chatConfig.helpLeft = 0;
     chatConfig.countLeft = 0;
     return chatConfig
 }
 
+/**
+ * Returns the value if present, else retuns the default value.
+ * 
+ * @param {*} value the value to return if present
+ * @param {*} defaultValue the to return if absent
+ */
+function getValueOrDefault(value, defaultValue) {
+    if(typeof value !== 'undefined') {
+        return value;
+    } else {
+        return defaultValue;
+    }
+}
 
-//TODO: fill out JSDoc - wongjoel 2017-03-20
-//TODO: parameterise !phelp response with messageInterval? - wongjoel 2017-03-20
 /**
  * runs the command
- * @param  {Object} tags -
+ * @param  {Object} tags - information about the incoming message
  * @returns
  */
 function runCommand(tags) {
@@ -169,7 +155,7 @@ function runCommand(tags) {
 };
 
 /**
- * load from IRC
+ * generate a new ponder
  * @param file -
  */
 function generatePonder(message) {
@@ -182,7 +168,7 @@ function generatePonder(message) {
 		badWordFound = badWord ? true : false;
 		attempts++;
 		if(attempts >= 30) {
-			return "null";
+			return 'null';
 		}
 	}
 	return ponder;
