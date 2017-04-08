@@ -1,9 +1,9 @@
 /**Ponder Command */
-var hal = require('jsmegahal');
-var zlib = require('zlib');
-var fs = require('fs');
+const hal = require('jsmegahal');
+const zlib = require('zlib');
+const fs = require('fs');
 
-var lupus = require('lupus');
+const lupus = require('lupus');
 
 var chatRooms = {};
 
@@ -24,61 +24,53 @@ module.exports = function() {
 			badWords = response.split('\n');
 		}
 	});
-
 	this.addInstance = addInstance;
 	this.runCommand = runCommand;
-
-	/**
-	 * pulls options from the command
-	 * @returns
-	 */
-	this.pullOptions = () => {
-		return {
-			"hal": megaHAL
-		};
-	};
-
-	/**
-	 * sets options of the command
-	 * @param options - the options to set on the command
-	 */
-	this.setOptions = (options) => {
-		megaHAL = options.hal;
-	};
-
-	//TODO: fill out JSDoc - wongjoel 2017-03-20
-	/**
-	 * exit
-	 */
-	this.exit = () => {
-		return true;
-	};
+	this.pullOptions = pullOptions;
+	this.setOptions = setOptions;
+	this.exit = exit;
 	return this;
 };
 
-//TODO: fill out JSDoc - wongjoel 2017-03-20
+/**
+ * pulls options from the command
+ * @returns options
+ */
+function pullOptions() {
+	return {
+		"hal": megaHAL
+	};
+}
+
+/**
+ * sets options of the command
+ * @param options - the options to set on the command
+ */
+function setOptions(options) {
+	megaHAL = options.hal;
+}
+
+/**
+ * exit
+ */
+function exit() {
+	return true;
+}
+
 /**
  * Initial setup
  * @param  {Object} user - name of chat room
  * @param  {Object} config - config file
  */
 function addInstance(user, config) {
-	console.log("add instance: " + user);
-	console.log("add instance config: ");
-	console.log(config);
-	console.log("users before: ");
-	console.log(chatRooms);
-	chatRooms[user] = readConfigOrDefault(config);
-
-	console.log("users after: ");
-	console.log(chatRooms);
-};
+	chatRooms[user] = readConfig(config);
+}
 
 /**
  * return a complete config object, replacing any missing values with defaults
  * @param  {Object} config - config file
  */
-function readConfigOrDefault(config) {
+function readConfig(config) {
     let chatConfig = {};
     chatConfig.unlimitedPonders = getValueOrDefault(config.unlimitedPonders, []);
     chatConfig.resetTime = getValueOrDefault(config.resetTime, 1600); // GMT
@@ -89,7 +81,7 @@ function readConfigOrDefault(config) {
     chatConfig.messagesLeft = 0;
     chatConfig.helpLeft = 0;
     chatConfig.countLeft = 0;
-    return chatConfig
+    return chatConfig;
 }
 
 /**
@@ -122,7 +114,7 @@ function runCommand(tags) {
 		let result;
 		if(message.startsWith('!ponder ')) {
 			if(channel.unlimitedPonders.indexOf(user) > -1) {
-				console.log('Unlimited Ponders');
+				console.log(user + 'Has Unlimited Ponders');
 				return generatePonder(message);
 			} else if(channel.messagesLeft < 1) {
 				channel.messagesLeft = channel.messageInterval;
@@ -152,7 +144,7 @@ function runCommand(tags) {
 			megaHAL.add(message);
 		}
 	}
-};
+}
 
 /**
  * generate a new ponder
@@ -185,7 +177,7 @@ function loadFromIrc(file) {
 		} else {
 			chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
 			lupus(0, chatLines.length, function(n) {
-				addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+<.\S+>\s(.+)\n/)[1];
+				let addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+<.\S+>\s(.+)\n/)[1];
 				megaHAL.add(addLine);
 			});
 		}
