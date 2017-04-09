@@ -99,7 +99,8 @@ function getValueOrDefault(value, defaultValue) {
 }
 
 /**
- * runs the command
+ * processes the message and decides which command is to be called
+ * 
  * @param  {Object} tags - information about the incoming message
  * @returns
  */
@@ -113,28 +114,11 @@ function runCommand(tags) {
 		channel.countLeft--;
 		let result;
 		if(message.startsWith('!ponder ')) {
-			if(channel.unlimitedPonders.indexOf(user) > -1) {
-				console.log(user + 'Has Unlimited Ponders');
-				return generatePonder(message);
-			} else if(channel.messagesLeft < 1) {
-				channel.messagesLeft = channel.messageInterval;
-				return generatePonder(message);
-			} else if(channel.countLeft < 1) {
-				result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
-				channel.countLeft = channel.countInterval;
-				return result;
-			}
+			return runPonderCommand(channel, user, message);
 		} else if(message == "!pcount") {
-			if(channel.countLeft < 1) {
-				result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
-				channel.countLeft = channel.countInterval;
-				return result;
-			}
+			return runCountCommand(channel);
 		} else if(message == "!phelp") {
-			if(channel.helpLeft < 1) {
-				channel.helpLeft = channel.helpInterval;
-				return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
-			}
+			return runHelpCommand(channel);
 		} else if(message.startsWith("!load ") && user == "dillonea") {
 			loadFromIrc(message.replace("!load ", ""));
 			return "Loading from " + message.replace("!load ", "") + "...";
@@ -143,6 +127,52 @@ function runCommand(tags) {
 		if(channel.ignores.indexOf(user) < 0) {
 			megaHAL.add(message);
 		}
+	}
+}
+
+/**
+ * runs the ponder command
+ * @param  {Object} channel - information about the channel
+ * @param  {String} user - username who sent the message
+ * @param  {String} message - the text of the message
+ * @returns a message to be sent to the chat room
+ */
+function runPonderCommand(channel, user, message) {
+	if(channel.unlimitedPonders.indexOf(user) > -1) {
+		console.log(user + ' Has Unlimited Ponders');
+		return generatePonder(message);
+	} else if(channel.messagesLeft < 1) {
+		channel.messagesLeft = channel.messageInterval; //reset messagesLeft to the interval
+		return generatePonder(message);
+	} else if(channel.countLeft < 1) {
+		let result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+		channel.countLeft = channel.countInterval;
+		return result;
+	}
+}
+
+/**
+ * runs the count command
+ * @param  {Object} channel - information about the channel
+ * @returns a message to be sent to the chat room
+ */
+function runCountCommand(channel) {
+	if(channel.countLeft < 1) {
+		let result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+		channel.countLeft = channel.countInterval;
+		return result;
+	}
+}
+
+/**
+ * runs the help command
+ * @param  {Object} channel - information about the channel
+ * @returns a message to be sent to the chat room
+ */
+function runHelpCommand(channel) {
+	if(channel.helpLeft < 1) {
+		channel.helpLeft = channel.helpInterval;
+		return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 	}
 }
 
