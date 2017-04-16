@@ -36,6 +36,12 @@
 						}
 					]
 				}
+			},
+			{
+				"command": "moderation",
+				"config": {
+					
+				}
 			}
 		]
 	}
