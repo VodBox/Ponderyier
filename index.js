@@ -84,11 +84,11 @@ function registerCommand(options) {
 			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
 			for(var i = 0, l = instanceCache.length; i < l; ++i) {
 				if(instanceCache[i] !== options.interface) {
-					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command]);
+					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command], options.interface.name);
 				}
 			}
 		} else {
-			commandRefs[options.command].addInstance(options.interface.destination, options.interface.options, self, commandRefs[options.command]);
+			commandRefs[options.command].addInstance(options.interface.destination, options.interface.options, self, commandRefs[options.command], options.interface.name);
 		}
 	}
 }

@@ -5,7 +5,7 @@ var timers = {}; // This can theoretically change
 const uuid = require('uuid/v1');
 
 module.exports = function() {
-	this.addInstance = function(chat, config, _super) {
+	this.addInstance = function(chat, config, _super, ignore, interface) {
 		chats[chat] = {
 			"lastMessageTime": 0, // UNIX time
 			"timers": {}
@@ -16,9 +16,10 @@ module.exports = function() {
 				"name": config.timers[i].name,
 				"timeCooldown": config.timers[i].timeCooldown,
 				"messageCooldown": config.timers[i].messageCooldown,
-				"messagesSinceTimerStart": 0 // Will be changed programatically
+				"messagesSinceTimerStart": 0, // Will be changed programatically
+				"interface": interface
 			};
-			runTimer(chat, config.timers[i].uuid, _super);
+			runTimer(chat, config.timers[i].uuid, _super, interface);
 		}
 	};
 
@@ -107,7 +108,7 @@ module.exports = function() {
 			chats = options.chats;
 			for(let chat in chats) {
 				for(let i = 0, l = chats[chat].timers.length; i < l; ++i) {
-					runTimer(chat, chats[chat].timers[i].uuid, _super);
+					runTimer(chat, chats[chat].timers[i].uuid, _super, chats[chat].timers[i].interface);
 				}
 			}
 		}
