@@ -187,22 +187,24 @@ function runHelpCommand(channel) {
 }
 
 /**
- * generate a new ponder
+ * Generate a new ponder, checking for forbidden words.
+ * 
+ * This is meant to be tail recursive, and tail call optimisation is part of ES6 spec.
+ * 
  * @param processedMessage - Message excluding the command keyword
+ * @param remainingAttempts - number of tries left. Defaults to 30 if not specified.
  */
-function generatePonder(processedMessage) {
-	let badWordFound = true;
-	let attempts = 0;
-	let ponder;
-	while(badWordFound) {
-		ponder = megaHAL.getReplyFromSentence(processedMessage);
-		badWordFound = badWords.some(badWord => ponder.includes(badWord));
-		attempts++;
-		if(attempts >= 30) {
-			return 'null';
-		}
+function generatePonder(processedMessage, remainingAttempts=30) {
+	if(remainingAttempts <= 0) {
+		return "null";
 	}
-	return ponder;
+	let ponder = megaHAL.getReplyFromSentence(processedMessage);
+	let badWordFound = badWords.some(badWord => ponder.includes(badWord));
+	if(badWordFound) {
+		return generatePonder(processedMessage, remainingAttempts-1);
+	} else {
+		return ponder;
+	}
 }
 
 /**
