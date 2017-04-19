@@ -196,8 +196,7 @@ function generatePonder(processedMessage) {
 	let ponder;
 	while(badWordFound) {
 		ponder = megaHAL.getReplyFromSentence(processedMessage);
-		let badWord = badWords.find(badWord => ponder.includes(badWord));
-		badWordFound = badWord ? true : false;
+		badWordFound = badWords.some(badWord => ponder.includes(badWord));
 		attempts++;
 		if(attempts >= 30) {
 			return 'null';
