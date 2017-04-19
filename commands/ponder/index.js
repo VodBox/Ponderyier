@@ -81,6 +81,16 @@ function readConfig(config) {
     chatConfig.messagesLeft = 0;
     chatConfig.helpLeft = 0;
     chatConfig.countLeft = 0;
+
+	let lexicalMarker = getValueOrDefault(config.lexicalMarker, "!");
+	let ponderKeyword = getValueOrDefault(config.ponderKeyword, "ponder");
+	let countKeyword = getValueOrDefault(config.countKeyword, "pcount");
+	let helpKeyword = getValueOrDefault(config.helpKeyword, "phelp");
+
+	chatConfig.matchesPonder = (message) => message.startsWith(lexicalMarker + ponderKeyword + " ");
+	chatConfig.ponderReplace = (message) => message.replace(lexicalMarker + ponderKeyword + " ", "");
+	chatConfig.matchesCount = (message) => message == (lexicalMarker + countKeyword);
+	chatConfig.matchesHelp = (message) => message == (lexicalMarker + helpKeyword);
     return chatConfig;
 }
 
@@ -112,12 +122,11 @@ function runCommand(tags) {
 		channel.messagesLeft--;
 		channel.helpLeft--;
 		channel.countLeft--;
-		let result;
-		if(message.startsWith('!ponder ')) {
+		if(channel.matchesPonder(message)) {
 			return runPonderCommand(channel, user, message);
-		} else if(message == "!pcount") {
+		} else if(channel.matchesCount(message)) {
 			return runCountCommand(channel);
-		} else if(message == "!phelp") {
+		} else if(channel.matchesHelp(message)) {
 			return runHelpCommand(channel);
 		} else if(message.startsWith("!load ") && user == "dillonea") {
 			loadFromIrc(message.replace("!load ", ""));
@@ -138,12 +147,13 @@ function runCommand(tags) {
  * @returns a message to be sent to the chat room
  */
 function runPonderCommand(channel, user, message) {
+	let processedMessage = channel.ponderReplace(message);
 	if(channel.unlimitedPonders.indexOf(user) > -1) {
 		console.log(user + ' Has Unlimited Ponders');
-		return generatePonder(message);
+		return generatePonder(processedMessage);
 	} else if(channel.messagesLeft < 1) {
 		channel.messagesLeft = channel.messageInterval; //reset messagesLeft to the interval
-		return generatePonder(message);
+		return generatePonder(processedMessage);
 	} else if(channel.countLeft < 1) {
 		let result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
 		channel.countLeft = channel.countInterval;
@@ -178,14 +188,14 @@ function runHelpCommand(channel) {
 
 /**
  * generate a new ponder
- * @param file -
+ * @param processedMessage - Message excluding the command keyword
  */
-function generatePonder(message) {
+function generatePonder(processedMessage) {
 	let badWordFound = true;
 	let attempts = 0;
 	let ponder;
 	while(badWordFound) {
-		ponder = megaHAL.getReplyFromSentence(message.replace('/\!ponder /', ''));
+		ponder = megaHAL.getReplyFromSentence(processedMessage);
 		let badWord = badWords.find(badWord => ponder.includes(badWord));
 		badWordFound = badWord ? true : false;
 		attempts++;
