@@ -71,16 +71,16 @@ function addInstance(user, config) {
  * @param  {Object} config - config file
  */
 function readConfig(config) {
-    let chatConfig = {};
-    chatConfig.unlimitedPonders = getValueOrDefault(config.unlimitedPonders, []);
-    chatConfig.resetTime = getValueOrDefault(config.resetTime, 1600); // GMT
-    chatConfig.messageInterval = getValueOrDefault(config.messageInterval, 30);
-    chatConfig.helpInterval = getValueOrDefault(config.helpInterval, 15);
-    chatConfig.countInterval = getValueOrDefault(config.countInterval, 10);
-    chatConfig.ignores = getValueOrDefault(config.ignores, []);
-    chatConfig.messagesLeft = 0;
-    chatConfig.helpLeft = 0;
-    chatConfig.countLeft = 0;
+	let chatConfig = {};
+	chatConfig.unlimitedPonders = getValueOrDefault(config.unlimitedPonders, []);
+	chatConfig.resetTime = getValueOrDefault(config.resetTime, 1600); // GMT
+	chatConfig.messageInterval = getValueOrDefault(config.messageInterval, 30);
+	chatConfig.helpInterval = getValueOrDefault(config.helpInterval, 15);
+	chatConfig.countInterval = getValueOrDefault(config.countInterval, 10);
+	chatConfig.ignores = getValueOrDefault(config.ignores, []);
+	chatConfig.messagesLeft = 0;
+	chatConfig.helpLeft = 0;
+	chatConfig.countLeft = 0;
 
 	let lexicalMarker = getValueOrDefault(config.lexicalMarker, "!");
 	let ponderKeyword = getValueOrDefault(config.ponderKeyword, "ponder");
@@ -91,26 +91,26 @@ function readConfig(config) {
 	chatConfig.ponderReplace = (message) => message.replace(lexicalMarker + ponderKeyword + " ", "");
 	chatConfig.matchesCount = (message) => message == (lexicalMarker + countKeyword);
 	chatConfig.matchesHelp = (message) => message == (lexicalMarker + helpKeyword);
-    return chatConfig;
+		return chatConfig;
 }
 
 /**
  * Returns the value if present, else retuns the default value.
- * 
+ *
  * @param {*} value the value to return if present
  * @param {*} defaultValue the to return if absent
  */
 function getValueOrDefault(value, defaultValue) {
-    if(typeof value !== 'undefined') {
-        return value;
-    } else {
-        return defaultValue;
-    }
+	if(typeof value !== 'undefined') {
+		return value;
+	} else {
+		return defaultValue;
+	}
 }
 
 /**
  * processes the message and decides which command is to be called
- * 
+ *
  * @param  {Object} tags - information about the incoming message
  * @returns
  */
@@ -188,9 +188,9 @@ function runHelpCommand(channel) {
 
 /**
  * Generate a new ponder, checking for forbidden words.
- * 
+ *
  * This is meant to be tail recursive, and tail call optimisation is part of ES6 spec.
- * 
+ *
  * @param processedMessage - Message excluding the command keyword
  * @param remainingAttempts - number of tries left. Defaults to 30 if not specified.
  */
