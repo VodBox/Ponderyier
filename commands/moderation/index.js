@@ -23,6 +23,10 @@ module.exports = function() {
 		let user = tags.user;
 		let takeAction = false;
 		let reason;
+		// console.log(tags);
+		if(tags.mod == 1 || user == chat) {
+			return;
+		}
 		if(!chats[chat].users[user]) {
 			chats[chat].users[user] = {
 				"level": 0,
@@ -43,13 +47,17 @@ module.exports = function() {
 				}
 			}
 		}
+		if(!takeAction && chats[chat].emotes) {
+			let emotes = tags.emotes.match(/\d+-\d+/g);
+			if(emotes && emotes.length > chats[chat].emoteTolerance) {
+				takeAction = true;
+				reason = "Stop spamming emotes!";
+			}
+		}
 		if(!takeAction && chats[chat].caps && message.length > 9) {
 			let uppercase = message.match(/[A-Z]/g) || {"length": 0};
 			let lowercase = message.match(/[a-z]/g) || {"length": 0};
 			let numbers = message.match(/\d/g) || {"length": 0};
-			console.log(uppercase.length);
-			console.log(lowercase.length);
-			console.log(numbers.length);
 			if(uppercase.length > (uppercase.length + lowercase.length + (numbers.length * 0.5)) * chats[chat].capsProportion) {
 				takeAction = true;
 				reason = "Watch your caps!";
