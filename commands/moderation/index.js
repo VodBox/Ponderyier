@@ -64,7 +64,7 @@ module.exports = function() {
 			}
 		}
 		if(!takeAction && chats[chat].symbols && message.length > 9) {
-			let symbols = message.match(/[^a-zA-Z0-9]/g) || {"length": 0};
+			let symbols = message.match(/[^a-zA-Z0-9\s]/g) || {"length": 0};
 			let numbers = message.match(/\d/g) || {"length": 0};
 			let letters = message.match(/[a-zA-Z]/g) || {"length": 0};
 			if(symbols.length > (symbols.length + (numbers.length * 0.5) + letters.length) * chats[chat].symbolProportion) {
