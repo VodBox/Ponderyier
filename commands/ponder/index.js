@@ -91,7 +91,7 @@ function readConfig(config) {
 	chatConfig.ponderReplace = (message) => message.replace(lexicalMarker + ponderKeyword + " ", "");
 	chatConfig.matchesCount = (message) => message == (lexicalMarker + countKeyword);
 	chatConfig.matchesHelp = (message) => message == (lexicalMarker + helpKeyword);
-		return chatConfig;
+	return chatConfig;
 }
 
 /**
