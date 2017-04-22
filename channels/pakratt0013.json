@@ -4,7 +4,7 @@
 		"url": "pakratt0013",
 		"commands" : [
 			{
-				"command": "ponder", 
+				"command": "ponder",
 				"config": {
 					"resetTime": 1600,
 					"messageInterval": 30,

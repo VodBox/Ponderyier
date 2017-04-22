@@ -13,7 +13,7 @@ module.exports = function(config, router) {
 
 /**
  * Starts the filesystem interface
- * @param {Object} self 
+ * @param {Object} self
  */
 function runFilesystemChannel(self) {
     console.log("Filesystem Channel started");
@@ -22,7 +22,7 @@ function runFilesystemChannel(self) {
 
 /**
  * Processes the next message, then schedules the next message to be processed
- * @param {Object} message 
+ * @param {Object} message
  */
 function processNextMessage(messages, router) {
     const messageRecieved = messages.shift();
@@ -41,7 +41,7 @@ function processNextMessage(messages, router) {
 
 /**
  * addChannel is called when __
- * @param {Object} channel 
+ * @param {Object} channel
  */
 function addChannel(channel, router) {
     console.log("filesystem addChannel has been called with argument " + channel);
