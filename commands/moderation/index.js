@@ -1,3 +1,8 @@
+/**
+ * Moderation Command
+ *
+ * Enforces rule-based moderation
+ */
 const fs = require('fs');
 
 var chats = {};
@@ -12,121 +17,154 @@ fs.readFile('./badWords.txt', 'utf8', function(error, response) {
 });
 
 module.exports = function() {
-	this.addInstance = function(chat, config, manager) {
-		console.log(chat);
-		chats[chat] = readConfig(config);
-	};
-
-	this.runCommand = function(tags, manager) {
-		let chat = tags.channel;
-		let message = tags.message;
-		let user = tags.user;
-		let takeAction = false;
-		let reason;
-		// console.log(tags);
-		if(tags.mod == 1 || user == chat) {
-			return;
-		}
-		if(!chats[chat].users[user]) {
-			chats[chat].users[user] = {
-				"level": 0,
-				"lastAction": 0,
-				"lastMessages": Array.apply(null, Array(chats[chat].spamTolerance)).map(Number.prototype.valueOf,0)
-			};
-		}
-		if(chats[chat].badWords) {
-			let badWord = badWords.find(badWord => message.toLowerCase().includes(badWord));
-			if(badWord) {
-				takeAction = true;
-				reason = "Watch your language!";
-			} else {
-				let badWord = chats[chat].customBadWords.find(badWord => message.toLowerCase().includes(badWord));
-				if(badWord) {
-					takeAction = true;
-					reason = "Watch your language!";
-				}
-			}
-		}
-		if(!takeAction && chats[chat].emotes) {
-			let emotes = tags.emotes.match(/\d+-\d+/g);
-			if(emotes && emotes.length > chats[chat].emoteTolerance) {
-				takeAction = true;
-				reason = "Stop spamming emotes!";
-			}
-		}
-		if(!takeAction && chats[chat].caps && message.length > 9) {
-			let uppercase = message.match(/[A-Z]/g) || {"length": 0};
-			let lowercase = message.match(/[a-z]/g) || {"length": 0};
-			let numbers = message.match(/\d/g) || {"length": 0};
-			if(uppercase.length > (uppercase.length + lowercase.length + (numbers.length * 0.5)) * chats[chat].capsProportion) {
-				takeAction = true;
-				reason = "Watch your caps!";
-			}
-		}
-		if(!takeAction && chats[chat].symbols && message.length > 9) {
-			let symbols = message.match(/[^a-zA-Z0-9\s]/g) || {"length": 0};
-			let numbers = message.match(/\d/g) || {"length": 0};
-			let letters = message.match(/[a-zA-Z]/g) || {"length": 0};
-			if(symbols.length > (symbols.length + (numbers.length * 0.5) + letters.length) * chats[chat].symbolProportion) {
-				takeAction = true;
-				reason = "Please stop spamming symbols!";
-			}
-		}
-		if(!takeAction && chats[chat].spam && message.length > 9) {
-			let tolerance = Date.now() - 1000;
-			let count = 1;
-			for(var i = 0, l = chats[chat].spamTolerance; i < l; ++i) {
-				if(chats[chat].users[user].lastMessages[i] > tolerance) {
-					++count;
-				}
-			}
-			if(count > chats[chat].spamTolerance) {
-				takeAction = true;
-				reason = "Please stop spamming chat!";
-			}
-		}
-		if(takeAction) {
-			if(chats[chat].users[user].lastAction < Date.now() - (60 * 60 * 1000) || chats[chat].users[user].level === 0) {
-				chats[chat].users[user].level = 1;
-				chats[chat].users[user].lastAction = Date.now();
-				manager.interfaces[tags.interface.name].purgeUser(chat, user);
-				if(chats[chat].verboseChat) {
-					manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
-				}
-			} else if(chats[chat].users[user].level == 1) {
-				chats[chat].users[user].level = 2;
-				chats[chat].users[user].lastAction = Date.now();
-				manager.interfaces[tags.interface.name].kickUser(chat, user);
-				if(chats[chat].verboseChat) {
-					manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
-				}
-			} else {
-				manager.interfaces[tags.interface.name].banUser(chat, user);
-				if(chats[chat].verboseChat) {
-					manager.interfaces[tags.interface.name].sendMessage(chat, "[BAN] " + reason);
-				}
-			}
-		}
-		chats[chat].users[user].lastMessages.shift();
-		chats[chat].users[user].lastMessages.push(Date.now());
-	};
-
-	this.pullOptions = function() {
-		return {
-			chats: chats
-		};
-	};
-
-	this.setOptions = function(options) {
-		chats = options.chats;
-	};
-
-	this.exit = function() {
-		return true;
-	};
+	this.addInstance = addInstance;
+	this.runCommand = runCommand;
+	this.pullOptions = pullOptions;
+	this.setOptions = setOptions;
+	this.exit = exit;
 	return this;
 };
 
+/**
+ * Initial setup
+ * @param  {Object} user - name of chat room
+ * @param  {Object} config - config object
+ */
+function addInstance(user, config) {
+	console.log(chat);
+	chats[chat] = readConfig(config);
+}
+
+/**
+ * processes the message and decides which command is to be called
+ *
+ * @param  {Object} tags - information about the incoming message
+ * @param  {Object} manager -
+ * @returns response if one is generated, else undefined
+ */
+function runCommand(tags, manager) {
+	let chat = tags.channel;
+	let message = tags.message;
+	let user = tags.user;
+	let takeAction = false;
+	let reason;
+	// console.log(tags);
+	if(tags.mod == 1 || user == chat) {
+		return;
+	}
+	if(!chats[chat].users[user]) {
+		chats[chat].users[user] = {
+			"level": 0,
+			"lastAction": 0,
+			"lastMessages": Array.apply(null, Array(chats[chat].spamTolerance)).map(Number.prototype.valueOf,0)
+		};
+	}
+	if(chats[chat].badWords) {
+		let badWord = badWords.find(badWord => message.toLowerCase().includes(badWord));
+		if(badWord) {
+			takeAction = true;
+			reason = "Watch your language!";
+		} else {
+			let badWord = chats[chat].customBadWords.find(badWord => message.toLowerCase().includes(badWord));
+			if(badWord) {
+				takeAction = true;
+				reason = "Watch your language!";
+			}
+		}
+	}
+	if(!takeAction && chats[chat].emotes) {
+		let emotes = tags.emotes.match(/\d+-\d+/g);
+		if(emotes && emotes.length > chats[chat].emoteTolerance) {
+			takeAction = true;
+			reason = "Stop spamming emotes!";
+		}
+	}
+	if(!takeAction && chats[chat].caps && message.length > 9) {
+		let uppercase = message.match(/[A-Z]/g) || {"length": 0};
+		let lowercase = message.match(/[a-z]/g) || {"length": 0};
+		let numbers = message.match(/\d/g) || {"length": 0};
+		if(uppercase.length > (uppercase.length + lowercase.length + (numbers.length * 0.5)) * chats[chat].capsProportion) {
+			takeAction = true;
+			reason = "Watch your caps!";
+		}
+	}
+	if(!takeAction && chats[chat].symbols && message.length > 9) {
+		let symbols = message.match(/[^a-zA-Z0-9\s]/g) || {"length": 0};
+		let numbers = message.match(/\d/g) || {"length": 0};
+		let letters = message.match(/[a-zA-Z]/g) || {"length": 0};
+		if(symbols.length > (symbols.length + (numbers.length * 0.5) + letters.length) * chats[chat].symbolProportion) {
+			takeAction = true;
+			reason = "Please stop spamming symbols!";
+		}
+	}
+	if(!takeAction && chats[chat].spam && message.length > 9) {
+		let tolerance = Date.now() - 1000;
+		let count = 1;
+		for(var i = 0, l = chats[chat].spamTolerance; i < l; ++i) {
+			if(chats[chat].users[user].lastMessages[i] > tolerance) {
+				++count;
+			}
+		}
+		if(count > chats[chat].spamTolerance) {
+			takeAction = true;
+			reason = "Please stop spamming chat!";
+		}
+	}
+	if(takeAction) {
+		if(chats[chat].users[user].lastAction < Date.now() - (60 * 60 * 1000) || chats[chat].users[user].level === 0) {
+			chats[chat].users[user].level = 1;
+			chats[chat].users[user].lastAction = Date.now();
+			manager.interfaces[tags.interface.name].purgeUser(chat, user);
+			if(chats[chat].verboseChat) {
+				manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
+			}
+		} else if(chats[chat].users[user].level == 1) {
+			chats[chat].users[user].level = 2;
+			chats[chat].users[user].lastAction = Date.now();
+			manager.interfaces[tags.interface.name].kickUser(chat, user);
+			if(chats[chat].verboseChat) {
+				manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
+			}
+		} else {
+			manager.interfaces[tags.interface.name].banUser(chat, user);
+			if(chats[chat].verboseChat) {
+				manager.interfaces[tags.interface.name].sendMessage(chat, "[BAN] " + reason);
+			}
+		}
+	}
+	chats[chat].users[user].lastMessages.shift();
+	chats[chat].users[user].lastMessages.push(Date.now());
+}
+
+/**
+ * pulls options from the command
+ * @returns options
+ */
+function pullOptions() {
+	return {
+		"hal": megaHAL
+	};
+}
+
+/**
+ * sets options of the command
+ * @param options - the options to set on the command
+ */
+function setOptions(options) {
+	megaHAL = options.hal;
+}
+
+/**
+ * exit
+ */
+function exit() {
+	return true;
+}
+
+/**
+ * return a complete config object, replacing any missing values with defaults
+ * @param  {Object} config - config object
+ */
 function readConfig(config) {
 	let chatConfig = {};
 	chatConfig.symbols = getValueOrDefault(config.symbols, true);
@@ -152,9 +190,9 @@ function readConfig(config) {
  * @param {*} defaultValue the to return if absent
  */
 function getValueOrDefault(value, defaultValue) {
-		if(typeof value !== 'undefined') {
-				return value;
-		} else {
-				return defaultValue;
-		}
+	if(typeof value !== 'undefined') {
+		return value;
+	} else {
+		return defaultValue;
+	}
 }
