@@ -1,4 +1,8 @@
-/**Ponder Command */
+/**
+ * Ponder Command
+ *
+ * Generates random nonsense based on previous chat messages
+ */
 const hal = require('jsmegahal');
 const zlib = require('zlib');
 const fs = require('fs');
@@ -60,7 +64,7 @@ function exit() {
 /**
  * Initial setup
  * @param  {Object} user - name of chat room
- * @param  {Object} config - config file
+ * @param  {Object} config - config object
  */
 function addInstance(user, config) {
 	chatRooms[user] = readConfig(config);
@@ -68,7 +72,7 @@ function addInstance(user, config) {
 
 /**
  * return a complete config object, replacing any missing values with defaults
- * @param  {Object} config - config file
+ * @param  {Object} config - config object
  */
 function readConfig(config) {
 	let chatConfig = {};
@@ -112,7 +116,7 @@ function getValueOrDefault(value, defaultValue) {
  * processes the message and decides which command is to be called
  *
  * @param  {Object} tags - information about the incoming message
- * @returns
+ * @returns response if one is generated, else undefined
  */
 function runCommand(tags) {
 	let message = tags.message;
