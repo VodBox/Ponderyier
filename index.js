@@ -36,29 +36,11 @@ function wrapInPromise(funcToWrap, arg) {
 }
 
 /**
- * Wraps fs.readdir in a promise
- * @param {String} directory
- * @return a promise containing array of files, or an error
- */
-function readDirPromise(directory) {
-	return wrapInPromise(fs.readdir, directory);
-}
-
-/**
- * Wraps fs.readFile in a promise
- * @param {String} file
- * @return a promise containing a file, or an error
- */
-function readFilePromise(file) {
-	return wrapInPromise(fs.readFile, file);
-}
-
-/**
  * Starts Pond delegation service
  * @param  {Object} self - The module.exports for the service
  */
 function start(self) {
-	readDirPromise('./commands/').then((commandFiles) => {
+	wrapInPromise(fs.readdir, './commands/').then((commandFiles) => {
 		console.log("here");
 		commandFiles.forEach((commandFile) => {
 			const isDir = fs.statSync('./commands/' + commandFile).isDirectory();
@@ -73,14 +55,14 @@ function start(self) {
 			}
 		});
 	}).then(() => {
-		return readFilePromise('./config.json');
+		return wrapInPromise(fs.readFile, './config.json');
 	}).then((configFile) => {
 		const parsedConfig = JSON.parse(configFile);
 		for(let key in parsedConfig) {
 			interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
 		}
 	}).then(() => {
-		return readDirPromise('./channels/');
+		return wrapInPromise(fs.readdir, './channels/');
 	}).then((files) => {
 		files.forEach((file) => {
 			fs.readFile('./channels/' + file, function(err, response) {
