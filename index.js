@@ -18,13 +18,14 @@ module.exports = function() {
 };
 
 /**
- * Wraps fs.readdir in a promise
- * @param {String} directory
+ * Wraps a callback API in a promise
+ * @param {Object} funcToWrap - the function to wrap in a promise
+ * @param {String} arg - the argument to pass to that function
  * @return a promise containing array of files, or an error
  */
-function readDirPromise(directory) {
+function wrapInPromise(funcToWrap, arg) {
 	return new Promise((resolve, reject) => {
-		fs.readdir(directory, (error, files) => {
+		funcToWrap(arg, (error, files) => {
 			if(error) {
 				reject(new Error(error));
 			} else {
@@ -35,20 +36,21 @@ function readDirPromise(directory) {
 }
 
 /**
+ * Wraps fs.readdir in a promise
+ * @param {String} directory
+ * @return a promise containing array of files, or an error
+ */
+function readDirPromise(directory) {
+	return wrapInPromise(fs.readdir, directory);
+}
+
+/**
  * Wraps fs.readFile in a promise
  * @param {String} file
  * @return a promise containing a file, or an error
  */
 function readFilePromise(file) {
-	return new Promise((resolve, reject) => {
-		fs.readFile(file, (error, files) => {
-			if(error) {
-				reject(new Error(error));
-			} else {
-				resolve(files);
-			}
-		});
-	});
+	return wrapInPromise(fs.readFile, file);
 }
 
 /**
