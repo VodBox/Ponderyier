@@ -54,6 +54,10 @@ function start(self) {
 						commandRefs[commandFile].setOptions(savedOptions[commandFile]);
 					}
 				}
+			}).catch(error => { //Got to think of a way to escape the inner promise
+				console.error(new Error(error));
+				console.log("Shutting down...");
+				process.exit();
 			});
 		}));
 	}).then(() => {
@@ -66,17 +70,16 @@ function start(self) {
 	}).then(() => {
 		return wrapInPromise(fs.readdir, './channels/');
 	}).then(channelFiles => {
-		return Promise.all(channelFiles.map(file => {
-			wrapInPromise(fs.readFile, './channels/' + file
-			).then(channelData => {
-				const config = JSON.parse(channelData);
-				for(let key in config) {
-					if(key != "channel") {
-						interfaces[key].addChannel(config[key], self);
-					}
+		return Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)));
+	}).then(channelDataArr => {
+		channelDataArr.forEach(channel => {
+			const config = JSON.parse(channel);
+			for(let key in config) {
+				if(key != "channel") {
+					interfaces[key].addChannel(config[key], self);
 				}
-			});
-		}));
+			}
+		});
 	}).catch(error => {
 		console.error(error);
 		console.log("Shutting down...");
