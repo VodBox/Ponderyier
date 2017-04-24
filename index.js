@@ -74,6 +74,10 @@ function start(self) {
 				}
 			});
 		});
+	}).catch((error)=>{
+		console.error(error);
+		console.log("Ponderyier shutting down...");
+		process.exit();
 	});
 }
 
