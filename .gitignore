@@ -38,7 +38,6 @@ jspm_packages
 .node_repl_history
 
 # Tokens
-
 tokens
 twpak
 twhon
@@ -48,3 +47,5 @@ build/
 
 out/
 config.db
+
+.vscode

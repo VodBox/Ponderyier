@@ -40,31 +40,34 @@ function wrapInPromise(funcToWrap, arg) {
  * @param  {Object} self - The module.exports for the service
  */
 function start(self) {
-	wrapInPromise(fs.readdir, './commands/').then((commandFiles) => {
-		console.log("here");
-		commandFiles.forEach((commandFile) => {
-			const isDir = fs.statSync('./commands/' + commandFile).isDirectory();
-			if(isDir) {
-				commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
-				if(commandRefs.ponder) {
-					console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
+	wrapInPromise(fs.readdir, './commands/').then(commandFiles => {
+		return Promise.all(
+			commandFiles.map(commandFile => {
+			wrapInPromise(fs.stat, './commands/' + commandFile
+			).then(stat => stat.isDirectory()
+			).then(isDir => {
+				if(isDir) {
+					commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
+					if(commandRefs.ponder) {
+						console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
+					}
+					if(savedOptions && savedOptions[commandFile]) {
+						commandRefs[commandFile].setOptions(savedOptions[commandFile]);
+					}
 				}
-				if(savedOptions && savedOptions[commandFile]) {
-					commandRefs[commandFile].setOptions(savedOptions[commandFile]);
-				}
-			}
-		});
+			});
+		}));
 	}).then(() => {
 		return wrapInPromise(fs.readFile, './config.json');
-	}).then((configFile) => {
+	}).then(configFile => {
 		const parsedConfig = JSON.parse(configFile);
 		for(let key in parsedConfig) {
 			interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
 		}
 	}).then(() => {
 		return wrapInPromise(fs.readdir, './channels/');
-	}).then((files) => {
-		files.forEach((file) => {
+	}).then(files => {
+		files.forEach(file => {
 			fs.readFile('./channels/' + file, function(err, response) {
 				const config = JSON.parse(response);
 				for(let key in config) {
@@ -74,9 +77,9 @@ function start(self) {
 				}
 			});
 		});
-	}).catch((error)=>{
+	}).catch(error => {
 		console.error(error);
-		console.log("Ponderyier shutting down...");
+		console.log("Shutting down...");
 		process.exit();
 	});
 }
