@@ -56,43 +56,38 @@ function readFilePromise(file) {
  * @param  {Object} self - The module.exports for the service
  */
 function start(self) {
-	//Populate commandRefs from the command directory
-	fs.readdir('./commands/', function(err, files) {
-		files.forEach((file) => {
-			const isDir = fs.statSync('./commands/' + file).isDirectory();
+	readDirPromise('./commands/').then((commandFiles) => {
+		console.log("here");
+		commandFiles.forEach((commandFile) => {
+			const isDir = fs.statSync('./commands/' + commandFile).isDirectory();
 			if(isDir) {
-				commandRefs[file] = new (require('./commands/' + file + '/index.js'))();
+				commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
 				if(commandRefs.ponder) {
 					console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
 				}
-				if(savedOptions && savedOptions[file]) {
-					commandRefs[file].setOptions(savedOptions[file]);
+				if(savedOptions && savedOptions[commandFile]) {
+					commandRefs[commandFile].setOptions(savedOptions[commandFile]);
 				}
 			}
 		});
-		//Populate interfaces from config.json
-		fs.readFile('./config.json', 'utf8', function(err, data) {
-			if(err) {
-				console.log(err);
-				process.exit();
-			} else {
-				const result = JSON.parse(data);
-				for(let key in result) {
-					interfaces[key] = new require("./interfaces/" + key + "/main.js")(result[key], self);
-				}
-			}
-		});
-		//Add channel configuration to interfaces from the channel directory
-		fs.readdir('./channels/', function(err, files) {
-			files.forEach((file) => {
-				fs.readFile('./channels/' + file, function(err, response) {
-					const config = JSON.parse(response);
-					for(let key in config) {
-						if(key != "channel") {
-							interfaces[key].addChannel(config[key], self);
-						}
+	}).then(() => {
+		return readFilePromise('./config.json');
+	}).then((configFile) => {
+		const parsedConfig = JSON.parse(configFile);
+		for(let key in parsedConfig) {
+			interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
+		}
+	}).then(() => {
+		return readDirPromise('./channels/');
+	}).then((files) => {
+		files.forEach((file) => {
+			fs.readFile('./channels/' + file, function(err, response) {
+				const config = JSON.parse(response);
+				for(let key in config) {
+					if(key != "channel") {
+						interfaces[key].addChannel(config[key], self);
 					}
-				});
+				}
 			});
 		});
 	});
