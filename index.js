@@ -29,7 +29,7 @@ function start(self) {
 			if(isDir) {
 				commandRefs[file] = new (require('./commands/' + file + '/index.js'))();
 				if(commandRefs.ponder) {
-					console.log(commandRefs.ponder.exists);
+					console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
 				}
 				if(savedOptions && savedOptions[file]) {
 					commandRefs[file].setOptions(savedOptions[file]);
@@ -112,12 +112,12 @@ function runCommand(options, callback) {
 }
 
 function reload() {
-	console.log("reload not implemented");
+	console.log(new Error("reload not implemented"));
 }
 
 isDebugging(function(err, res) {
 	if(err) {
-		console.log('Something went wrong trying to detect debug mode...');
+		console.error(new Error('Something went wrong trying to detect debug mode...\n' + err));
 	} else if(res) {
 		var heapdump = require('heapdump');
 		console.log('debug mode has been detected');

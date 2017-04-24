@@ -23,7 +23,7 @@ module.exports = function() {
 
 	fs.readFile('./badWords.txt', 'utf8', function(error, response) {
 		if(error) {
-			console.log(error);
+			console.error(new Error('No badword.txt file in the root dir\n' + error));
 		} else {
 			badWords = response.split('\n');
 		}
@@ -218,7 +218,7 @@ function generatePonder(processedMessage, remainingAttempts=30) {
 function loadFromIrc(file) {
 	fs.readFile('./' + file, 'utf8', function(error, response) {
 		if(error) {
-			console.log(error);
+			console.log(new Error(error));
 		} else {
 			chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
 			lupus(0, chatLines.length, function(n) {

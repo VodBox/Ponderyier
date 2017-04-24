@@ -26,7 +26,7 @@ module.exports = function(config, manager) {
 	} else {
 		fs.readFile(config.tokenLocation, 'utf8', function(error, data) {
 			if(error) {
-				console.log(error);
+				console.error(new Error("Unable to find token file\n" + error));
 				process.exit();
 			} else {
 				oauthToken = data;
