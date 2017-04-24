@@ -41,8 +41,7 @@ function wrapInPromise(funcToWrap, arg) {
  */
 function start(self) {
 	wrapInPromise(fs.readdir, './commands/').then(commandFiles => {
-		return Promise.all(
-			commandFiles.map(commandFile => {
+		return Promise.all(commandFiles.map(commandFile => {
 			wrapInPromise(fs.stat, './commands/' + commandFile
 			).then(stat => stat.isDirectory()
 			).then(isDir => {
@@ -66,17 +65,18 @@ function start(self) {
 		}
 	}).then(() => {
 		return wrapInPromise(fs.readdir, './channels/');
-	}).then(files => {
-		files.forEach(file => {
-			fs.readFile('./channels/' + file, function(err, response) {
-				const config = JSON.parse(response);
+	}).then(channelFiles => {
+		return Promise.all(channelFiles.map(file => {
+			wrapInPromise(fs.readFile, './channels/' + file
+			).then(channelData => {
+				const config = JSON.parse(channelData);
 				for(let key in config) {
 					if(key != "channel") {
 						interfaces[key].addChannel(config[key], self);
 					}
 				}
 			});
-		});
+		}));
 	}).catch(error => {
 		console.error(error);
 		console.log("Shutting down...");
