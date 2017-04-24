@@ -18,6 +18,40 @@ module.exports = function() {
 };
 
 /**
+ * Wraps fs.readdir in a promise
+ * @param {String} directory
+ * @return a promise containing array of files, or an error
+ */
+function readDirPromise(directory) {
+	return new Promise((resolve, reject) => {
+		fs.readdir(directory, (error, files) => {
+			if(error) {
+				reject(new Error(error));
+			} else {
+				resolve(files);
+			}
+		});
+	});
+}
+
+/**
+ * Wraps fs.readFile in a promise
+ * @param {String} file
+ * @return a promise containing a file, or an error
+ */
+function readFilePromise(file) {
+	return new Promise((resolve, reject) => {
+		fs.readFile(file, (error, files) => {
+			if(error) {
+				reject(new Error(error));
+			} else {
+				resolve(files);
+			}
+		});
+	});
+}
+
+/**
  * Starts Pond delegation service
  * @param  {Object} self - The module.exports for the service
  */
