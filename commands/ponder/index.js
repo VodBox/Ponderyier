@@ -48,7 +48,7 @@ function pullOptions() {
 
 /**
  * sets options of the command
- * @param options - the options to set on the command
+ * @param {Object} options - the options to set on the command
  */
 function setOptions(options) {
 	megaHAL = options.hal;
@@ -63,8 +63,8 @@ function exit() {
 
 /**
  * Initial setup
- * @param  {Object} user - name of chat room
- * @param  {Object} config - config object
+ * @param {Object} user - name of chat room
+ * @param {Object} config - config object
  */
 function addInstance(user, config) {
 	chatRooms[user] = readConfig(config);
@@ -72,7 +72,7 @@ function addInstance(user, config) {
 
 /**
  * return a complete config object, replacing any missing values with defaults
- * @param  {Object} config - config object
+ * @param {Object} config - config object
  */
 function readConfig(config) {
 	let chatConfig = {};
@@ -115,7 +115,7 @@ function getValueOrDefault(value, defaultValue) {
 /**
  * processes the message and decides which command is to be called
  *
- * @param  {Object} tags - information about the incoming message
+ * @param {Object} tags - information about the incoming message
  * @returns response if one is generated, else undefined
  */
 function runCommand(tags) {
@@ -145,9 +145,9 @@ function runCommand(tags) {
 
 /**
  * runs the ponder command
- * @param  {Object} channel - information about the channel
- * @param  {String} user - username who sent the message
- * @param  {String} message - the text of the message
+ * @param {Object} channel - information about the channel
+ * @param {String} user - username who sent the message
+ * @param {String} message - the text of the message
  * @returns a message to be sent to the chat room
  */
 function runPonderCommand(channel, user, message) {
@@ -167,7 +167,7 @@ function runPonderCommand(channel, user, message) {
 
 /**
  * runs the count command
- * @param  {Object} channel - information about the channel
+ * @param {Object} channel - information about the channel
  * @returns a message to be sent to the chat room
  */
 function runCountCommand(channel) {
@@ -180,7 +180,7 @@ function runCountCommand(channel) {
 
 /**
  * runs the help command
- * @param  {Object} channel - information about the channel
+ * @param {Object} channel - information about the channel
  * @returns a message to be sent to the chat room
  */
 function runHelpCommand(channel) {
@@ -195,8 +195,8 @@ function runHelpCommand(channel) {
  *
  * This is meant to be tail recursive, and tail call optimisation is part of ES6 spec.
  *
- * @param processedMessage - Message excluding the command keyword
- * @param remainingAttempts - number of tries left. Defaults to 30 if not specified.
+ * @param {String} processedMessage - Message excluding the command keyword
+ * @param {Number} remainingAttempts - number of tries left. Defaults to 30 if not specified.
  */
 function generatePonder(processedMessage, remainingAttempts = 30) {
 	if (remainingAttempts <= 0) {
