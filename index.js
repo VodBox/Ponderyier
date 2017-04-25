@@ -67,8 +67,8 @@ function readCommands() {
 			.map(commandFile => wrapInPromise(fs.stat, './commands/' + commandFile)
 				.then(isDir => {
 					if (isDir) {
-						console.log("Found " + commandFile);
-						commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
+						console.log(`Found ${commandFile}`);
+						commandRefs[commandFile] = new (require(`./commands/${commandFile}/index.js`))();
 						if (savedOptions && savedOptions[commandFile]) {
 							commandRefs[commandFile].setOptions(savedOptions[commandFile]);
 						}
@@ -85,8 +85,8 @@ function readConfig() {
 		.then(configFile => {
 			const parsedConfig = JSON.parse(configFile);
 			for (let key in parsedConfig) {
-				console.log("Adding interface: " + key);
-				interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
+				console.log(`Adding interface: ${key}`);
+				interfaces[key] = new require(`./interfaces/${key}/main.js`)(parsedConfig[key], self);
 			}
 		});
 }
@@ -102,8 +102,7 @@ function readChannels() {
 				const config = JSON.parse(channel);
 				for (let key in config) {
 					if (key != "channel") {
-						console.log(key);
-						console.log("Connecting to channel " + config.channel + " on interface " + key);
+						console.log(`Connecting to channel ${config.channel} on interface ${key}`);
 						interfaces[key].addChannel(config[key], self);
 					}
 				}
@@ -126,8 +125,8 @@ function registerCommand(options) {
 		}
 		if (options.reload) {
 			var instanceCache = commandRefs[options.command].instances;
-			delete require.cache[path.resolve('./commands/' + options.command + '.js')];
-			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
+			delete require.cache[path.resolve(`./commands/${options.command}.js`)];
+			commandRefs[options.command] = new require(`./commands/${options.command}/index.js`);
 			for (var i = 0, l = instanceCache.length; i < l; ++i) {
 				if (instanceCache[i] !== options.interface) {
 					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command], options.interface.name);

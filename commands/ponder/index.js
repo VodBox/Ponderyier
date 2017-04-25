@@ -23,7 +23,7 @@ module.exports = function () {
 
 	fs.readFile('./badWords.txt', 'utf8', function (error, response) {
 		if (error) {
-			console.error(new Error('No badword.txt file in the root dir\n' + error));
+			console.error(new Error(`No badword.txt file in the root dir\n ${error}`));
 		} else {
 			badWords = response.split('\n');
 		}
@@ -153,13 +153,13 @@ function runCommand(tags) {
 function runPonderCommand(channel, user, message) {
 	let processedMessage = channel.ponderReplace(message);
 	if (channel.unlimitedPonders.indexOf(user) > -1) {
-		console.log(user + ' Has Unlimited Ponders');
+		console.log(`${user} Has Unlimited Ponders`);
 		return generatePonder(processedMessage);
 	} else if (channel.messagesLeft < 1) {
 		channel.messagesLeft = channel.messageInterval; //reset messagesLeft to the interval
 		return generatePonder(processedMessage);
 	} else if (channel.countLeft < 1) {
-		let result = "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+		let result = `There are ${Math.max(channel.messagesLeft, 0)} messages left till the next !ponder`;
 		channel.countLeft = channel.countInterval;
 		return result;
 	}
@@ -172,7 +172,7 @@ function runPonderCommand(channel, user, message) {
  */
 function runCountCommand(channel) {
 	if (channel.countLeft < 1) {
-		let result = "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+		let result = `There are ${Math.max(channel.messagesLeft, 0)} messages left till the next !ponder`;
 		channel.countLeft = channel.countInterval;
 		return result;
 	}
@@ -186,7 +186,7 @@ function runCountCommand(channel) {
 function runHelpCommand(channel) {
 	if (channel.helpLeft < 1) {
 		channel.helpLeft = channel.helpInterval;
-		return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
+		return `A !ponder will be available every ${channel.messageInterval} messages, and you have one ponder for your user every 24 hours.`;
 	}
 }
 
@@ -216,7 +216,7 @@ function generatePonder(processedMessage, remainingAttempts = 30) {
  * @param file -
  */
 function loadFromIrc(file) {
-	fs.readFile('./' + file, 'utf8', function (error, response) {
+	fs.readFile(`./${file}`, 'utf8', function (error, response) {
 		if (error) {
 			console.log(new Error(error));
 		} else {
