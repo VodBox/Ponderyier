@@ -9,14 +9,13 @@ const fs = require('fs');
 
 const lupus = require('lupus');
 
-var chatRooms = {};
+let chatRooms = {};
 
-var messageStore = [];
+let messageStore = [];
 
-var badWords = [];
+let badWords = [];
 
-var megaHAL;
-var chatLines;
+let megaHAL;
 
 module.exports = function () {
 	megaHAL = new hal(1);
@@ -220,7 +219,7 @@ function loadFromIrc(file) {
 		if (error) {
 			console.log(new Error(error));
 		} else {
-			chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
+			let chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
 			lupus(0, chatLines.length, function (n) {
 				let addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+<.\S+>\s(.+)\n/)[1];
 				megaHAL.add(addLine);

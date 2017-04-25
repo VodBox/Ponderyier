@@ -10,7 +10,7 @@ var badWords;
 
 fs.readFile('./badWords.txt', 'utf8', function (error, response) {
 	if (error) {
-		console.error(new Error('No badword.txt file in the root dir\n' + error));
+		console.error(new Error(`No badword.txt file in the root dir\n ${error}`));
 	} else {
 		badWords = response.split('\n');
 	}

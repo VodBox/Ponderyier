@@ -62,7 +62,7 @@ function addChannel(channel, router) {
 	fs.readFile('./interfaces/filesystem/channel1.json', 'utf-8', (err, data) => {
 		//Check for errors
 		if (err) {
-			console.log(err);
+			console.error(new Error(err));
 			return;
 		}
 		//parse the returned data as JSON, and store it in the messages array

@@ -7,9 +7,9 @@ var username; //Twitch username
 var oauthToken; //OAuth Token for authentication with Twitch
 
 var channels = {};
-
+var joinQueue = [];
 var callbacks = [];
-
+var symbols = ['<', '>', '?', ',', "'", '='];
 var irc; //websocket connection to Twitch IRC chat server
 
 module.exports = function (config, manager) {
@@ -44,10 +44,6 @@ module.exports = function (config, manager) {
 	return this;
 };
 
-var joinQueue = [];
-
-//TODO: rename function? - wongjoel 2017-03-20
-//TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
  * Starts the connection to twitch
  * @param  {Object} that -
@@ -61,7 +57,6 @@ function startPond(that) {
 				irc.send("PONG :tmi.twitch.tv");
 				console.log("PONGED");
 			} else {
-				//TODO: should tags be an object or a map? - wongjoel 2017-03-20
 				var tags = {};
 				var tagPart = "";
 				tagPart = data.split(" ")[0];
@@ -156,9 +151,6 @@ function issueCallbacks(type, data, that) {
 	}
 }
 
-var symbols = ['<', '>', '?', ',', "'", '='];
-
-//TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
  * When a PRIVMSG event occurs
  * @param  {Object} data -
