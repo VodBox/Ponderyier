@@ -41,34 +41,62 @@ function wrapInPromise(funcToWrap, arg) {
  */
 function start(self) {
 	Promise.resolve(console.log("Finding commands..."))
-		.then(() => wrapInPromise(fs.readdir, './commands/'))
-		.then(commandFiles => {
-			return Promise.all(commandFiles.map(commandFile => {
-				return wrapInPromise(fs.stat, './commands/' + commandFile)
-					.then(isDir => {
-						if (isDir) {
-							console.log("Found " + commandFile);
-							commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
-							if (savedOptions && savedOptions[commandFile]) {
-								commandRefs[commandFile].setOptions(savedOptions[commandFile]);
-							}
-						}
-					});
-			}));
-		})
+		.then(() => readCommands())
 		.then(() => console.log("Finished reading Commands.\n"))
 		.then(() => console.log("Reading config..."))
-		.then(() => wrapInPromise(fs.readFile, './config.json'))
+		.then(() => readConfig())
+		.then(() => console.log("Finished reading Config\n"))
+		.then(() => console.log("Adding channels..."))
+		.then(() => readChannels())
+		.then(() => console.log("Finished adding channels.\n"))
+		.catch(error => {
+			let message = error instanceof Error ? error : new Error(error);
+			console.error(message);
+			console.log("Shutting down...");
+			process.exit();
+		});
+}
+
+/**
+ * Reads the commands from the file system
+ * @return a promise chain that will read the commands
+ */
+function readCommands() {
+	return wrapInPromise(fs.readdir, './commands/')
+		.then(commandFiles => Promise.all(commandFiles
+			.map(commandFile => wrapInPromise(fs.stat, './commands/' + commandFile)
+				.then(isDir => {
+					if (isDir) {
+						console.log("Found " + commandFile);
+						commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
+						if (savedOptions && savedOptions[commandFile]) {
+							commandRefs[commandFile].setOptions(savedOptions[commandFile]);
+						}
+					}
+				}))));
+}
+
+/**
+ * Reads the config from the file system
+ * @return a promise chain that will read the config
+ */
+function readConfig() {
+	return wrapInPromise(fs.readFile, './config.json')
 		.then(configFile => {
 			const parsedConfig = JSON.parse(configFile);
 			for (let key in parsedConfig) {
 				console.log("Adding interface: " + key);
 				interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
 			}
-		})
-		.then(() => console.log("Finished reading Config\n"))
-		.then(() => console.log("Adding channels..."))
-		.then(() => wrapInPromise(fs.readdir, './channels/'))
+		});
+}
+
+/**
+ * Reads the channels from the file system
+ * @return a promise chain that will read the channels
+ */
+function readChannels() {
+	return wrapInPromise(fs.readdir, './channels/')
 		.then(channelFiles => Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)
 			.then(channel => {
 				const config = JSON.parse(channel);
@@ -79,14 +107,7 @@ function start(self) {
 						interfaces[key].addChannel(config[key], self);
 					}
 				}
-			}))))
-		.then(() => console.log("Finished adding channels.\n"))
-		.catch(error => {
-			let message = error instanceof Error ? error : new Error(error);
-			console.error(message);
-			console.log("Shutting down...");
-			process.exit();
-		});
+			}))));
 }
 
 /**
