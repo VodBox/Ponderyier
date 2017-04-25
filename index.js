@@ -42,9 +42,9 @@ function wrapInPromise(funcToWrap, arg) {
 function start(self) {
 	wrapInPromise(fs.readdir, './commands/').then(commandFiles => {
 		return Promise.all(commandFiles.map(commandFile => {
-			wrapInPromise(fs.stat, './commands/' + commandFile
-			).then(stat => stat.isDirectory()
-			).then(isDir => {
+			return wrapInPromise(fs.stat, './commands/' + commandFile)
+			.then(stat => stat.isDirectory()).then(stat => Promise.reject("my reject"))
+			.then(isDir => {
 				if(isDir) {
 					commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
 					if(commandRefs.ponder) {
@@ -54,20 +54,15 @@ function start(self) {
 						commandRefs[commandFile].setOptions(savedOptions[commandFile]);
 					}
 				}
-			}).catch(error => { //Got to think of a way to escape the inner promise
-				console.error(new Error(error));
-				console.log("Shutting down...");
-				process.exit();
 			});
-		}));
-	}).then(() => {
-		return wrapInPromise(fs.readFile, './config.json');
-	}).then(configFile => {
-		const parsedConfig = JSON.parse(configFile);
-		for(let key in parsedConfig) {
-			interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
-		}
-	}).then(() => {
+		}));})
+		.then(() => wrapInPromise(fs.readFile, './config.json'))
+		.then(configFile => {
+			const parsedConfig = JSON.parse(configFile);
+			for(let key in parsedConfig) {
+				interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
+			}})
+			.then(() => {
 		return wrapInPromise(fs.readdir, './channels/');
 	}).then(channelFiles => {
 		return Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)));
@@ -81,7 +76,8 @@ function start(self) {
 			}
 		});
 	}).catch(error => {
-		console.error(error);
+		let message = error instanceof Error ? error : new Error(error);
+		console.error(message);
 		console.log("Shutting down...");
 		process.exit();
 	});
