@@ -8,7 +8,7 @@ const savedOptions = {}; //object holding saved options
 
 var self;
 
-module.exports = function() {
+module.exports = function () {
 	this.registerCommand = registerCommand;
 	this.runCommand = runCommand;
 	this.reload = reload;
@@ -26,7 +26,7 @@ module.exports = function() {
 function wrapInPromise(funcToWrap, arg) {
 	return new Promise((resolve, reject) => {
 		funcToWrap(arg, (error, files) => {
-			if(error) {
+			if (error) {
 				reject(new Error(error));
 			} else {
 				resolve(files);
@@ -43,44 +43,46 @@ function start(self) {
 	wrapInPromise(fs.readdir, './commands/').then(commandFiles => {
 		return Promise.all(commandFiles.map(commandFile => {
 			return wrapInPromise(fs.stat, './commands/' + commandFile)
-			.then(stat => stat.isDirectory()).then(stat => Promise.reject("my reject"))
-			.then(isDir => {
-				if(isDir) {
-					commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
-					if(commandRefs.ponder) {
-						console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
+				.then(stat => stat.isDirectory()).then(stat => Promise.reject("my reject"))
+				.then(isDir => {
+					if (isDir) {
+						commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
+						if (commandRefs.ponder) {
+							console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
+						}
+						if (savedOptions && savedOptions[commandFile]) {
+							commandRefs[commandFile].setOptions(savedOptions[commandFile]);
+						}
 					}
-					if(savedOptions && savedOptions[commandFile]) {
-						commandRefs[commandFile].setOptions(savedOptions[commandFile]);
-					}
-				}
-			});
-		}));})
+				});
+		}));
+	})
 		.then(() => wrapInPromise(fs.readFile, './config.json'))
 		.then(configFile => {
 			const parsedConfig = JSON.parse(configFile);
-			for(let key in parsedConfig) {
+			for (let key in parsedConfig) {
 				interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
-			}})
-			.then(() => {
-		return wrapInPromise(fs.readdir, './channels/');
-	}).then(channelFiles => {
-		return Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)));
-	}).then(channelDataArr => {
-		channelDataArr.forEach(channel => {
-			const config = JSON.parse(channel);
-			for(let key in config) {
-				if(key != "channel") {
-					interfaces[key].addChannel(config[key], self);
-				}
 			}
+		})
+		.then(() => {
+			return wrapInPromise(fs.readdir, './channels/');
+		}).then(channelFiles => {
+			return Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)));
+		}).then(channelDataArr => {
+			channelDataArr.forEach(channel => {
+				const config = JSON.parse(channel);
+				for (let key in config) {
+					if (key != "channel") {
+						interfaces[key].addChannel(config[key], self);
+					}
+				}
+			});
+		}).catch(error => {
+			let message = error instanceof Error ? error : new Error(error);
+			console.error(message);
+			console.log("Shutting down...");
+			process.exit();
 		});
-	}).catch(error => {
-		let message = error instanceof Error ? error : new Error(error);
-		console.error(message);
-		console.log("Shutting down...");
-		process.exit();
-	});
 }
 
 /**
@@ -93,16 +95,16 @@ function start(self) {
  * @param  {Object} options.interface.options - Command instance configuration
  */
 function registerCommand(options) {
-	if(commandRefs[options.command]) {
-		if(options.reload === undefined || options.reload === null) {
+	if (commandRefs[options.command]) {
+		if (options.reload === undefined || options.reload === null) {
 			options.reload = false;
 		}
-		if(options.reload) {
+		if (options.reload) {
 			var instanceCache = commandRefs[options.command].instances;
 			delete require.cache[path.resolve('./commands/' + options.command + '.js')];
 			commandRefs[options.command] = new require('./commands/' + options.command + '/index.js');
-			for(var i = 0, l = instanceCache.length; i < l; ++i) {
-				if(instanceCache[i] !== options.interface) {
+			for (var i = 0, l = instanceCache.length; i < l; ++i) {
+				if (instanceCache[i] !== options.interface) {
 					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command], options.interface.name);
 				}
 			}
@@ -121,9 +123,9 @@ function registerCommand(options) {
  * @param  {Function} callback - Callback to run when response created (response: string).
  */
 function runCommand(options, callback) {
-	for(var i = 0, l = options.commands.length; i < l; ++i) {
+	for (var i = 0, l = options.commands.length; i < l; ++i) {
 		var commandResponse = commandRefs[options.commands[i].command].runCommand(options.message, self);
-		if(commandResponse) {
+		if (commandResponse) {
 			callback(commandResponse);
 			break;
 		}
@@ -134,22 +136,22 @@ function reload() {
 	console.log(new Error("reload not implemented"));
 }
 
-isDebugging(function(err, res) {
-	if(err) {
+isDebugging(function (err, res) {
+	if (err) {
 		console.error(new Error('Something went wrong trying to detect debug mode...\n' + err));
-	} else if(res) {
+	} else if (res) {
 		var heapdump = require('heapdump');
 		console.log('debug mode has been detected');
 	}
 });
 
 function isDebugging(cb) {
-	require('net').createServer().on('error', function(err) {
+	require('net').createServer().on('error', function (err) {
 		if (err.code === 'EADDRINUSE')
 			cb(null, true);
 		else
 			cb(err);
-	}).listen(process.debugPort, function() {
+	}).listen(process.debugPort, function () {
 		this.close();
 		cb(null, false);
 	});

@@ -18,11 +18,11 @@ var badWords = [];
 var megaHAL;
 var chatLines;
 
-module.exports = function() {
+module.exports = function () {
 	megaHAL = new hal(1);
 
-	fs.readFile('./badWords.txt', 'utf8', function(error, response) {
-		if(error) {
+	fs.readFile('./badWords.txt', 'utf8', function (error, response) {
+		if (error) {
 			console.error(new Error('No badword.txt file in the root dir\n' + error));
 		} else {
 			badWords = response.split('\n');
@@ -105,7 +105,7 @@ function readConfig(config) {
  * @param {*} defaultValue the to return if absent
  */
 function getValueOrDefault(value, defaultValue) {
-	if(typeof value !== 'undefined') {
+	if (typeof value !== 'undefined') {
 		return value;
 	} else {
 		return defaultValue;
@@ -122,22 +122,22 @@ function runCommand(tags) {
 	let message = tags.message;
 	let user = tags.user;
 	let channel = chatRooms[tags.channel];
-	if(channel) {
+	if (channel) {
 		channel.messagesLeft--;
 		channel.helpLeft--;
 		channel.countLeft--;
-		if(channel.matchesPonder(message)) {
+		if (channel.matchesPonder(message)) {
 			return runPonderCommand(channel, user, message);
-		} else if(channel.matchesCount(message)) {
+		} else if (channel.matchesCount(message)) {
 			return runCountCommand(channel);
-		} else if(channel.matchesHelp(message)) {
+		} else if (channel.matchesHelp(message)) {
 			return runHelpCommand(channel);
-		} else if(message.startsWith("!load ") && user == "dillonea") {
+		} else if (message.startsWith("!load ") && user == "dillonea") {
 			loadFromIrc(message.replace("!load ", ""));
 			return "Loading from " + message.replace("!load ", "") + "...";
 		}
 
-		if(channel.ignores.indexOf(user) < 0) {
+		if (channel.ignores.indexOf(user) < 0) {
 			megaHAL.add(message);
 		}
 	}
@@ -152,14 +152,14 @@ function runCommand(tags) {
  */
 function runPonderCommand(channel, user, message) {
 	let processedMessage = channel.ponderReplace(message);
-	if(channel.unlimitedPonders.indexOf(user) > -1) {
+	if (channel.unlimitedPonders.indexOf(user) > -1) {
 		console.log(user + ' Has Unlimited Ponders');
 		return generatePonder(processedMessage);
-	} else if(channel.messagesLeft < 1) {
+	} else if (channel.messagesLeft < 1) {
 		channel.messagesLeft = channel.messageInterval; //reset messagesLeft to the interval
 		return generatePonder(processedMessage);
-	} else if(channel.countLeft < 1) {
-		let result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+	} else if (channel.countLeft < 1) {
+		let result = "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
 		channel.countLeft = channel.countInterval;
 		return result;
 	}
@@ -171,8 +171,8 @@ function runPonderCommand(channel, user, message) {
  * @returns a message to be sent to the chat room
  */
 function runCountCommand(channel) {
-	if(channel.countLeft < 1) {
-		let result =  "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
+	if (channel.countLeft < 1) {
+		let result = "There are " + Math.max(channel.messagesLeft, 0) + " messages left till the next !ponder";
 		channel.countLeft = channel.countInterval;
 		return result;
 	}
@@ -184,7 +184,7 @@ function runCountCommand(channel) {
  * @returns a message to be sent to the chat room
  */
 function runHelpCommand(channel) {
-	if(channel.helpLeft < 1) {
+	if (channel.helpLeft < 1) {
 		channel.helpLeft = channel.helpInterval;
 		return "A !ponder will be available every 30 messages, and you have one ponder for your user every 24 hours.";
 	}
@@ -198,14 +198,14 @@ function runHelpCommand(channel) {
  * @param processedMessage - Message excluding the command keyword
  * @param remainingAttempts - number of tries left. Defaults to 30 if not specified.
  */
-function generatePonder(processedMessage, remainingAttempts=30) {
-	if(remainingAttempts <= 0) {
+function generatePonder(processedMessage, remainingAttempts = 30) {
+	if (remainingAttempts <= 0) {
 		return "null";
 	}
 	let ponder = megaHAL.getReplyFromSentence(processedMessage);
 	let badWordFound = badWords.some(badWord => ponder.includes(badWord));
-	if(badWordFound) {
-		return generatePonder(processedMessage, remainingAttempts-1);
+	if (badWordFound) {
+		return generatePonder(processedMessage, remainingAttempts - 1);
 	} else {
 		return ponder;
 	}
@@ -216,12 +216,12 @@ function generatePonder(processedMessage, remainingAttempts=30) {
  * @param file -
  */
 function loadFromIrc(file) {
-	fs.readFile('./' + file, 'utf8', function(error, response) {
-		if(error) {
+	fs.readFile('./' + file, 'utf8', function (error, response) {
+		if (error) {
 			console.log(new Error(error));
 		} else {
 			chatLines = response.match(/\d+\-\d+\:\d+\:\d+<.(\S+)>\s(.+)\n/g);
-			lupus(0, chatLines.length, function(n) {
+			lupus(0, chatLines.length, function (n) {
 				let addLine = chatLines[n].match(/\d+\-\d+\:\d+\:\d+<.\S+>\s(.+)\n/)[1];
 				megaHAL.add(addLine);
 			});

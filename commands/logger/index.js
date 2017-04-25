@@ -4,28 +4,28 @@
 
 var chats = [];
 
-module.exports = function() {
-	this.addInstance = function(chat, config, manager) {
+module.exports = function () {
+	this.addInstance = function (chat, config, manager) {
 		chats.push(chat);
 	};
 
-	this.runCommand = function(tags, manager) {
+	this.runCommand = function (tags, manager) {
 		let chat = tags.channel;
 		let message = tags.message;
 		console.log("logger: " + message);
 	};
 
-	this.pullOptions = function() {
+	this.pullOptions = function () {
 		return {
 			chats: chats
 		};
 	};
 
-	this.setOptions = function(options) {
+	this.setOptions = function (options) {
 		chats = options.chats;
 	};
 
-	this.exit = function() {
+	this.exit = function () {
 		return true;
 	};
 	return this;
