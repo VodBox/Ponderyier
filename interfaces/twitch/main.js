@@ -1,16 +1,16 @@
 /**Twitch Interface */
-var fs = require('fs');
-var WebSocket = require('ws');
-var path = require('path');
+const fs = require('fs');
+const WebSocket = require('ws');
+const path = require('path');
 
-var username; //Twitch username
-var oauthToken; //OAuth Token for authentication with Twitch
+let username; //Twitch username
+let oauthToken; //OAuth Token for authentication with Twitch
 
-var channels = {};
-var joinQueue = [];
-var callbacks = [];
-var symbols = ['<', '>', '?', ',', "'", '='];
-var irc; //websocket connection to Twitch IRC chat server
+let channels = {};
+let joinQueue = [];
+let callbacks = [];
+let symbols = ['<', '>', '?', ',', "'", '='];
+let irc; //websocket connection to Twitch IRC chat server
 
 module.exports = function (config, manager) {
 	this.connected = false; //indicates if a connection to twitch has been established
@@ -22,7 +22,7 @@ module.exports = function (config, manager) {
 	this.banUser = banUser;
 	if (config.token) {
 		this.oauthToken = config.token;
-		startPond();
+		start();
 	} else {
 		fs.readFile(config.tokenLocation, 'utf8', function (error, data) {
 			if (error) {
@@ -30,7 +30,7 @@ module.exports = function (config, manager) {
 				process.exit();
 			} else {
 				oauthToken = data;
-				startPond(this);
+				start(this);
 			}
 		});
 	}
@@ -46,66 +46,65 @@ module.exports = function (config, manager) {
 
 /**
  * Starts the connection to twitch
- * @param  {Object} that -
+ * @param  {Object} that - the twitch object
  */
-function startPond(that) {
+function start(that) {
 	irc = new WebSocket("wss://irc-ws.chat.twitch.tv/");
-	irc.on('open', function (event) {
-		irc.on('message', function (message) {
-			var data = message;
-			if (data.trim() == "PING :tmi.twitch.tv") {
-				irc.send("PONG :tmi.twitch.tv");
-				console.log("PONGED");
-			} else {
-				var tags = {};
-				var tagPart = "";
-				tagPart = data.split(" ")[0];
-				if (tagPart.charAt(0) == "@") {
-					tagPart = tagPart.slice(1, tagPart.length);
-				}
-				var keyValuePairs = tagPart.split(";");
-				for (var i = 0, pairs = keyValuePairs.length; i < pairs; ++i) {
-					var key = keyValuePairs[i].split("=")[0];
-					var value = keyValuePairs[i].replace(key + "=", "");
-					tags[key] = value;
-				}
-				if (data.match(/tmi.twitch.tv .+ \#\S+ \:/)) {
-					var contents = data.replace(tagPart + " ", "").split(/\:(.+)/)[1].split(/\:(.+)/);
-					//console.log(contents);
-					if (contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)) {
-						tags.type = contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)[1];
-						tags.channel = contents[0].match(/tmi.twitch.tv .+ \#(\S+) /)[1];
-						tags.user = contents[0].split("!")[0];
-						tags.message = contents[1];
-					} else {
-						tags.message = "";
-					}
-					issueCallbacks(tags.type, tags, that);
-					//console.log(tags);
-					//console.log(tags.channel + ": <" + (tags.display-name ? tags.display-name : tags.user) + "> " + tags.message);
-				}
+	irc.on('message', (message) => {
+		let data = message;
+		if (data.trim() == "PING :tmi.twitch.tv") {
+			irc.send("PONG :tmi.twitch.tv");
+			console.log("PONGED");
+		} else {
+			let tags = {};
+			let tagPart = "";
+			tagPart = data.split(" ")[0];
+			if (tagPart.charAt(0) == "@") {
+				tagPart = tagPart.slice(1, tagPart.length);
 			}
-		});
+			let keyValuePairs = tagPart.split(";");
+			for (let i = 0, pairs = keyValuePairs.length; i < pairs; ++i) {
+				let key = keyValuePairs[i].split("=")[0];
+				let value = keyValuePairs[i].replace(key + "=", "");
+				tags[key] = value;
+			}
+			if (data.match(/tmi.twitch.tv .+ \#\S+ \:/)) {
+				let contents = data.replace(tagPart + " ", "").split(/\:(.+)/)[1].split(/\:(.+)/);
+				//console.log(contents);
+				if (contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)) {
+					tags.type = contents[0].match(/tmi.twitch.tv (.+) \#\S+ /)[1];
+					tags.channel = contents[0].match(/tmi.twitch.tv .+ \#(\S+) /)[1];
+					tags.user = contents[0].split("!")[0];
+					tags.message = contents[1];
+				} else {
+					tags.message = "";
+				}
+				issueCallbacks(tags.type, tags, that);
+				//console.log(tags);
+				//console.log(tags.channel + ": <" + (tags.display-name ? tags.display-name : tags.user) + "> " + tags.message);
+			}
+		}
+	});
+	irc.on('open', (event) => {
 		irc.send('PASS ' + oauthToken);
 		irc.send('NICK ' + username);
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 		that.connected = true;
-		for (var i = 0, l = joinQueue.length; i < l; ++i) {
+		for (let i = 0, l = joinQueue.length; i < l; ++i) {
 			joinChannel(joinQueue[i], that.manager);
 		}
 	});
 }
 
-//TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
  * Joins a channel
- * @param  {Object} config -
- * @param  {Object} manager -
+ * @param {Object} config - config
+ * @param {Object} manager - manager
  */
 function joinChannel(config, manager) {
 	channels[config.url] = config;
 	irc.send('JOIN #' + config.url);
-	for (var x = 0, j = config.commands.length; x < j; ++x) {
+	for (let x = 0, j = config.commands.length; x < j; ++x) {
 		manager.registerCommand({
 			"command": config.commands[x].command,
 			"reload": false,
@@ -118,11 +117,10 @@ function joinChannel(config, manager) {
 	}
 }
 
-//TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
- * for callbacks
- * @param  {Object} config -
- * @param  {Object} that -
+ * Allows registering events
+ * @param  {Object} type - the type of event
+ * @param  {Object} callback - the function to call on that event
  */
 function on(type, callback) {
 	if (!callbacks[type]) {
@@ -131,7 +129,6 @@ function on(type, callback) {
 	callbacks[type][callbacks[type].length] = callback;
 }
 
-//TODO: fill out JSDoc - wongjoel 2017-03-20
 /**
  * for callbacks
  * @param  {Object} type -
@@ -156,8 +153,8 @@ function issueCallbacks(type, data, that) {
  * @param  {Object} data -
  * @param  {Object} that -
  */
-on('PRIVMSG', function (data, that) {
-	console.log(data.channel + ": <" + (data["display-name"] ? data["display-name"] : data.user) + "> " + data.message);
+on('PRIVMSG', (data, that) => {
+	console.log(`${data.channel}: <${(data["display-name"] ? data["display-name"] : data.user)}> ${data.message}`);
 	if (data.message == "!v5Reload" && data.user == "dillonea") {
 		that.manager.reload();
 	} else {
@@ -171,23 +168,23 @@ on('PRIVMSG', function (data, that) {
 			"commands": channels[data.channel].commands
 		};
 		that.manager.runCommand(options, function (result) {
-			irc.send('PRIVMSG #' + data.channel + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + result);
+			sendMessage(data.channel, result);
 		});
 	}
 });
 
 function sendMessage(channel, message) {
-	irc.send('PRIVMSG #' + channel + ' :' + symbols[Math.floor(Math.random() * symbols.length)] + " - " + message);
+	irc.send(`PRIVMSG #${channel} :${symbols[Math.floor(Math.random() * symbols.length)]} - ${message}`);
 }
 
 function purgeUser(channel, user) {
-	irc.send('PRIVMSG #' + channel + ' :.timeout ' + user + ' 1');
+	irc.send(`PRIVMSG #${channel} :.timeout ${user} 1`);
 }
 
 function banUser(channel, user) {
-	irc.send('PRIVMSG #' + channel + ' :.ban ' + user);
+	irc.send(`PRIVMSG #${channel} :.ban ${user}`);
 }
 
 function kickUser(channel, user) {
-	irc.send('PRIVMSG #' + channel + ' :.timeout ' + user);
+	irc.send(`PRIVMSG #${channel} :.timeout ${user}`);
 }
