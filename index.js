@@ -40,44 +40,48 @@ function wrapInPromise(funcToWrap, arg) {
  * @param  {Object} self - The module.exports for the service
  */
 function start(self) {
-	wrapInPromise(fs.readdir, './commands/').then(commandFiles => {
-		return Promise.all(commandFiles.map(commandFile => {
-			return wrapInPromise(fs.stat, './commands/' + commandFile)
-				.then(stat => stat.isDirectory()).then(stat => Promise.reject("my reject"))
-				.then(isDir => {
-					if (isDir) {
-						commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
-						if (commandRefs.ponder) {
-							console.log('commandRefs.ponder.exists = ' + commandRefs.ponder.exists);
+	Promise.resolve(console.log("Finding commands..."))
+		.then(() => wrapInPromise(fs.readdir, './commands/'))
+		.then(commandFiles => {
+			return Promise.all(commandFiles.map(commandFile => {
+				return wrapInPromise(fs.stat, './commands/' + commandFile)
+					.then(isDir => {
+						if (isDir) {
+							console.log("Found " + commandFile);
+							commandRefs[commandFile] = new (require('./commands/' + commandFile + '/index.js'))();
+							if (savedOptions && savedOptions[commandFile]) {
+								commandRefs[commandFile].setOptions(savedOptions[commandFile]);
+							}
 						}
-						if (savedOptions && savedOptions[commandFile]) {
-							commandRefs[commandFile].setOptions(savedOptions[commandFile]);
-						}
-					}
-				});
-		}));
-	})
+					});
+			}));
+		})
+		.then(() => console.log("Finished reading Commands.\n"))
+		.then(() => console.log("Reading config..."))
 		.then(() => wrapInPromise(fs.readFile, './config.json'))
 		.then(configFile => {
 			const parsedConfig = JSON.parse(configFile);
 			for (let key in parsedConfig) {
+				console.log("Adding interface: " + key);
 				interfaces[key] = new require("./interfaces/" + key + "/main.js")(parsedConfig[key], self);
 			}
 		})
-		.then(() => {
-			return wrapInPromise(fs.readdir, './channels/');
-		}).then(channelFiles => {
-			return Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)));
-		}).then(channelDataArr => {
-			channelDataArr.forEach(channel => {
+		.then(() => console.log("Finished reading Config\n"))
+		.then(() => console.log("Adding channels..."))
+		.then(() => wrapInPromise(fs.readdir, './channels/'))
+		.then(channelFiles => Promise.all(channelFiles.map(file => wrapInPromise(fs.readFile, './channels/' + file)
+			.then(channel => {
 				const config = JSON.parse(channel);
 				for (let key in config) {
 					if (key != "channel") {
+						console.log(key);
+						console.log("Connecting to channel " + config.channel + " on interface " + key);
 						interfaces[key].addChannel(config[key], self);
 					}
 				}
-			});
-		}).catch(error => {
+			}))))
+		.then(() => console.log("Finished adding channels.\n"))
+		.catch(error => {
 			let message = error instanceof Error ? error : new Error(error);
 			console.error(message);
 			console.log("Shutting down...");
