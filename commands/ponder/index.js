@@ -22,7 +22,7 @@ module.exports = function () {
 
 	fs.readFile('./badWords.txt', 'utf8', function (error, response) {
 		if (error) {
-			console.error(new Error(`No badword.txt file in the root dir\n ${error}`));
+			throw new Error(new Error(`No badword.txt file in the root dir\n ${error}`));
 		} else {
 			badWords = response.split('\n');
 		}
@@ -139,6 +139,8 @@ function runCommand(tags) {
 		if (channel.ignores.indexOf(user) < 0) {
 			megaHAL.add(message);
 		}
+	} else {
+		console.warn("Recieved a command from unregistered channel");
 	}
 }
 
