@@ -1,3 +1,7 @@
+/**
+ * Tests the ponder command
+ */
+
 const assert = require('assert');
 const ponderModule = require('../commands/ponder/index.js');
 var ponder = new ponderModule();
@@ -30,12 +34,57 @@ describe('Ponder', function () {
 				assert.fail("not exists");
 			}
 		});
+
+		it("should have a function addInstance()", function () {
+			if (ponder.addInstance) {
+				assert.ok("exists");
+			} else {
+				assert.fail("not exists");
+			}
+		});
+	});
+
+	describe("generatePonder", function() {
+		it("should return a string");
+		it("should reject candidate ponders with bad words");
 	});
 
 	describe('!ponder command', function () {
 		it('should return a string', function () {
 			const tags = {
 				message: "!ponder testing the ponder command",
+				user: "normalUser",
+				channel: "testChat"
+			};
+			const ponderStr = ponder.runCommand(tags);
+			if (typeof ponderStr === "string") {
+				assert.ok("Is a String");
+			} else {
+				assert.fail("Generated ponder is not a String")
+			}
+		});
+	});
+
+	describe('!pcount command', function () {
+		it('should return a string', function () {
+			const tags = {
+				message: "!pcount",
+				user: "normalUser",
+				channel: "testChat"
+			};
+			const ponderStr = ponder.runCommand(tags);
+			if (typeof ponderStr === "string") {
+				assert.ok("Is a String");
+			} else {
+				assert.fail("Generated ponder is not a String")
+			}
+		});
+	});
+
+	describe('!phelp command', function () {
+		it('should return a string', function () {
+			const tags = {
+				message: "!phelp",
 				user: "normalUser",
 				channel: "testChat"
 			};
