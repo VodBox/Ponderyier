@@ -4,17 +4,11 @@
  * Generates random nonsense based on previous chat messages
  */
 const hal = require('jsmegahal');
-const zlib = require('zlib');
 const fs = require('fs');
-const lupus = require('lupus');
 const ponder = require('./ponder.js');
 
 let chatRooms = {};
-
-let messageStore = [];
-
 let badWords = [];
-
 let megaHAL;
 
 module.exports = function () {

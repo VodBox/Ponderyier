@@ -6,9 +6,9 @@
  * All the functions in this file should be essentially "pure"
  * Stateful functions should be done elsewhere
  */
+const lupus = require('lupus');
 const utils = require("../../engine/utils.js");
 const getValueOrDefault = utils.getValueOrDefault;
-
 
 exports.readConfig = readConfig;
 exports.runCommand = runCommand;
