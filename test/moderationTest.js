@@ -6,7 +6,7 @@ const assert = require('assert');
 const moderationModule = require('../commands/moderation/index.js');
 var moderation = new moderationModule();
 
-describe('Ponder', function () {
+describe('Moderation', function () {
 	before("Instantiate Moderation Module", function () {
 		moderation = new moderationModule();
 		const config = {
@@ -23,6 +23,26 @@ describe('Ponder', function () {
 				verboseChat: true
 		};
 		moderation.addInstance('testChat', config);
+	});
+
+	describe('moderation module', function () {
+		it("should exist", function () {
+			if (!moderation) {
+				assert.fail("not exists");
+			}
+		});
+
+		it("should have a function runCommand()", function () {
+			if (!moderation.runCommand) {
+				assert.fail("not exists");
+			}
+		});
+
+		it("should have a function addInstance()", function () {
+			if (!moderation.addInstance) {
+				assert.fail("not exists");
+			}
+		});
 	});
 
 	describe("Caps", function () {
