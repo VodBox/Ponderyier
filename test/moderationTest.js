@@ -30,8 +30,8 @@ describe('Ponder', function () {
 		it("should ignore regulars and above");
 	});
 
-	describe("Symbols", function () {
-		it("should bop too many symbols");
+	describe("Symbols/Emotes", function () {
+		it("should bop too many symbols/emotes");
 		it("should ignore regulars and above");
 	});
 
@@ -41,10 +41,9 @@ describe('Ponder', function () {
 		it("should ignore users who have been given permission");
 	});
 
-	describe("Spam", function () {
-		it("should bop spammy users");
+	describe("Bad Words", function () {
+		it("should bop bad words");
 		it("should ignore regulars and above");
-		it("should ignore users who have been given permission");
 	});
 
 	describe("Spam", function () {
