@@ -62,7 +62,25 @@ describe('Moderation', function () {
 	});
 
 	describe("Bad Words", function () {
-		it("should bop bad words");
+		it("should bop bad words", function (done) {
+			const tags = {
+				message: "badword badword badword",
+				user: "normalUser",
+				channel: "testChat",
+				emotes: "",
+				interface: {name: "testInterface"}
+			};
+			const dummyManager = {
+				interfaces: {
+					testInterface: {
+						purgeUser: () => {
+							console.log("dummy method called");
+						}
+					}
+				}
+			};
+			const result = moderation.runCommand(tags, dummyManager);
+		});
 		it("should ignore regulars and above");
 	});
 
