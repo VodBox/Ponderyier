@@ -20,25 +20,19 @@ describe('Ponder', function () {
 
 	describe('ponder module', function () {
 		it("should exist", function () {
-			if (ponder) {
-				assert.ok("exists");
-			} else {
+			if (!ponder) {
 				assert.fail("not exists");
 			}
 		});
 
 		it("should have a function runCommand()", function () {
-			if (ponder.runCommand) {
-				assert.ok("exists");
-			} else {
+			if (!ponder.runCommand) {
 				assert.fail("not exists");
 			}
 		});
 
 		it("should have a function addInstance()", function () {
-			if (ponder.addInstance) {
-				assert.ok("exists");
-			} else {
+			if (!ponder.addInstance) {
 				assert.fail("not exists");
 			}
 		});
