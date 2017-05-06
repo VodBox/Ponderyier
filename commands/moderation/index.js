@@ -44,6 +44,7 @@ function addInstance(chatRoom, config) {
  */
 function runCommand(tags, manager) {
 	let chat = tags.channel;
+	let chatConfig = chats[chat];
 	let message = tags.message;
 	let user = tags.user;
 	let takeAction = false;
@@ -52,88 +53,88 @@ function runCommand(tags, manager) {
 	if (tags.mod == 1 || user == chat) {
 		return;
 	}
-	if (!chats[chat].users[user]) {
-		chats[chat].users[user] = {
+	if (!chatConfig.users[user]) {
+		chatConfig.users[user] = {
 			"level": 0,
 			"lastAction": 0,
-			"lastMessages": Array.apply(null, Array(chats[chat].spamTolerance)).map(Number.prototype.valueOf, 0)
+			"lastMessages": Array.apply(null, Array(chatConfig.spamTolerance)).map(Number.prototype.valueOf, 0)
 		};
 	}
-	if (chats[chat].badWords) {
+	if (chatConfig.badWords) {
 		let badWord = badWords.find(badWord => message.toLowerCase().includes(badWord));
 		if (badWord) {
 			takeAction = true;
 			reason = "Watch your language!";
 		} else {
-			let badWord = chats[chat].customBadWords.find(badWord => message.toLowerCase().includes(badWord));
+			let badWord = chatConfig.customBadWords.find(badWord => message.toLowerCase().includes(badWord));
 			if (badWord) {
 				takeAction = true;
 				reason = "Watch your language!";
 			}
 		}
 	}
-	if (!takeAction && chats[chat].emotes) {
+	if (!takeAction && chatConfig.emotes) {
 		let emotes = tags.emotes.match(/\d+-\d+/g);
-		if (emotes && emotes.length > chats[chat].emoteTolerance) {
+		if (emotes && emotes.length > chatConfig.emoteTolerance) {
 			takeAction = true;
 			reason = "Stop spamming emotes!";
 		}
 	}
-	if (!takeAction && chats[chat].caps && message.length > 9) {
+	if (!takeAction && chatConfig.caps && message.length > 9) {
 		let uppercase = message.match(/[A-Z]/g) || { "length": 0 };
 		let lowercase = message.match(/[a-z]/g) || { "length": 0 };
 		let numbers = message.match(/\d/g) || { "length": 0 };
-		if (uppercase.length > (uppercase.length + lowercase.length + (numbers.length * 0.5)) * chats[chat].capsProportion) {
+		if (uppercase.length > (uppercase.length + lowercase.length + (numbers.length * 0.5)) * chatConfig.capsProportion) {
 			takeAction = true;
 			reason = "Watch your caps!";
 		}
 	}
-	if (!takeAction && chats[chat].symbols && message.length > 9) {
+	if (!takeAction && chatConfig.symbols && message.length > 9) {
 		let symbols = message.match(/[^a-zA-Z0-9\s]/g) || { "length": 0 };
 		let numbers = message.match(/\d/g) || { "length": 0 };
 		let letters = message.match(/[a-zA-Z]/g) || { "length": 0 };
-		if (symbols.length > (symbols.length + (numbers.length * 0.5) + letters.length) * chats[chat].symbolProportion) {
+		if (symbols.length > (symbols.length + (numbers.length * 0.5) + letters.length) * chatConfig.symbolProportion) {
 			takeAction = true;
 			reason = "Please stop spamming symbols!";
 		}
 	}
-	if (!takeAction && chats[chat].spam && message.length > 9) {
+	if (!takeAction && chatConfig.spam && message.length > 9) {
 		let tolerance = Date.now() - 1000;
 		let count = 1;
-		for (var i = 0, l = chats[chat].spamTolerance; i < l; ++i) {
-			if (chats[chat].users[user].lastMessages[i] > tolerance) {
+		for (var i = 0, l = chatConfig.spamTolerance; i < l; ++i) {
+			if (chatConfig.users[user].lastMessages[i] > tolerance) {
 				++count;
 			}
 		}
-		if (count > chats[chat].spamTolerance) {
+		if (count > chatConfig.spamTolerance) {
 			takeAction = true;
 			reason = "Please stop spamming chat!";
 		}
 	}
 	if (takeAction) {
-		if (chats[chat].users[user].lastAction < Date.now() - (60 * 60 * 1000) || chats[chat].users[user].level === 0) {
-			chats[chat].users[user].level = 1;
-			chats[chat].users[user].lastAction = Date.now();
+		if (chatConfig.users[user].lastAction < Date.now() - (60 * 60 * 1000) || chatConfig.users[user].level === 0) {
+			chatConfig.users[user].level = 1;
+			chatConfig.users[user].lastAction = Date.now();
 			manager.interfaces[tags.interface.name].purgeUser(chat, user);
-			if (chats[chat].verboseChat) {
+			if (chatConfig.verboseChat) {
 				manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
 			}
-		} else if (chats[chat].users[user].level == 1) {
-			chats[chat].users[user].level = 2;
-			chats[chat].users[user].lastAction = Date.now();
+		} else if (chatConfig.users[user].level == 1) {
+			chatConfig.users[user].level = 2;
+			chatConfig.users[user].lastAction = Date.now();
 			manager.interfaces[tags.interface.name].kickUser(chat, user);
-			if (chats[chat].verboseChat) {
+			if (chatConfig.verboseChat) {
 				manager.interfaces[tags.interface.name].sendMessage(chat, "[WARNING] " + reason);
 			}
 		} else {
 			manager.interfaces[tags.interface.name].banUser(chat, user);
-			if (chats[chat].verboseChat) {
+			if (chatConfig.verboseChat) {
 				manager.interfaces[tags.interface.name].sendMessage(chat, "[BAN] " + reason);
 			}
 		}
 	}
-	chats[chat].users[user].lastMessages.shift();
-	chats[chat].users[user].lastMessages.push(Date.now());
+	chatConfig.users[user].lastMessages.shift();
+	chatConfig.users[user].lastMessages.push(Date.now());
 }
 
 /**
