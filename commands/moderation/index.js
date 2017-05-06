@@ -141,9 +141,7 @@ function runCommand(tags, manager) {
  * @returns options
  */
 function pullOptions() {
-	return {
-		"hal": megaHAL
-	};
+	return null;
 }
 
 /**
@@ -151,8 +149,9 @@ function pullOptions() {
  * @param options - the options to set on the command
  */
 function setOptions(options) {
-	megaHAL = options.hal;
+
 }
+
 
 /**
  * exit
