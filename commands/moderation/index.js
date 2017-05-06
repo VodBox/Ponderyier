@@ -27,12 +27,12 @@ module.exports = function () {
 
 /**
  * Initial setup
- * @param  {Object} user - name of chat room
+ * @param  {Object} chatRoom - name of chat room
  * @param  {Object} config - config object
  */
-function addInstance(user, config) {
-	console.log(chat);
-	chats[chat] = readConfig(config);
+function addInstance(chatRoom, config) {
+	console.log(chatRoom);
+	chats[chatRoom] = readConfig(config);
 }
 
 /**
