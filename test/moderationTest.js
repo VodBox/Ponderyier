@@ -7,20 +7,20 @@ const moderationModule = require('../commands/moderation/index.js');
 var moderation = new moderationModule();
 
 describe('Moderation', function () {
-	before("Instantiate Moderation Module", function () {
+	beforeEach("Instantiate Moderation Module", function () {
 		moderation = new moderationModule();
 		const config = {
-				symbols: true,
-				caps: true,
-				emotes: true,
-				badWords: true,
-				spam: true,
-				symbolProportion: 0.5,
-				capsProportion: 0.8,
-				emoteTolerance: 5,
-				customBadWords: [],
-				spamTolerance: 3, // per second
-				verboseChat: true
+			symbols: true,
+			caps: true,
+			emotes: true,
+			badWords: true,
+			spam: true,
+			symbolProportion: 0.5,
+			capsProportion: 0.8,
+			emoteTolerance: 5,
+			customBadWords: [],
+			spamTolerance: 3, // per second
+			verboseChat: true
 		};
 		moderation.addInstance('testChat', config);
 	});
@@ -46,7 +46,30 @@ describe('Moderation', function () {
 	});
 
 	describe("Caps", function () {
-		it("should bop too many caps");
+		it("should bop too many caps", function (done) {
+			const tags = {
+				message: "THIS IS A SENTENCE IN ALL CAPS",
+				user: "normalUser",
+				channel: "testChat",
+				emotes: "",
+				interface: { name: "testInterface" }
+			};
+			const dummyManager = {
+				interfaces: {
+					testInterface: {
+						purgeUser: () => {
+							console.log("purgeUser called");
+							done();
+						},
+						sendMessage: () => {
+							console.log("sendMessage called");
+							// done();
+						}
+					}
+				}
+			};
+			const result = moderation.runCommand(tags, dummyManager);
+		});
 		it("should ignore regulars and above");
 	});
 
@@ -68,13 +91,18 @@ describe('Moderation', function () {
 				user: "normalUser",
 				channel: "testChat",
 				emotes: "",
-				interface: {name: "testInterface"}
+				interface: { name: "testInterface" }
 			};
 			const dummyManager = {
 				interfaces: {
 					testInterface: {
 						purgeUser: () => {
-							console.log("dummy method called");
+							console.log("purgeUser called");
+							done();
+						},
+						sendMessage: () => {
+							console.log("sendMessage called");
+							// done();
 						}
 					}
 				}
