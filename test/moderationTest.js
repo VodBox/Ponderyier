@@ -136,7 +136,32 @@ describe('Moderation', function () {
 	});
 
 	describe("Spam", function () {
-		it("should bop spammy users");
+		it("should bop spammy users", function (done) {
+			const tags = {
+				message: "spam spam spam spam",
+				user: "normalUser",
+				channel: "testChat",
+				emotes: "",
+				interface: { name: "testInterface" }
+			};
+			const dummyManager = {
+				interfaces: {
+					testInterface: {
+						purgeUser: () => {
+							console.log("purgeUser called");
+							done();
+						},
+						sendMessage: () => {
+							console.log("sendMessage called");
+							// done();
+						}
+					}
+				}
+			};
+			for (let i = 0; i < 100; i++){
+				const result = moderation.runCommand(tags, dummyManager);
+			}
+		});
 		it("should ignore regulars and above");
 	});
 });
