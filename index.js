@@ -52,7 +52,8 @@ function readCommands() {
 				.then(isDir => {
 					if (isDir) {
 						console.log(`Found ${commandFile}`);
-						commandRefs[commandFile] = new (require(`./commands/${commandFile}/index.js`))();
+						const command = require(`./commands/${commandFile}/index.js`);
+						commandRefs[commandFile] = new command();
 						if (savedOptions && savedOptions[commandFile]) {
 							commandRefs[commandFile].setOptions(savedOptions[commandFile]);
 						}
@@ -70,7 +71,8 @@ function readConfig() {
 			const parsedConfig = JSON.parse(configFile);
 			for (let key in parsedConfig) {
 				console.log(`Adding interface: ${key}`);
-				interfaces[key] = new require(`./interfaces/${key}/main.js`)(parsedConfig[key], self);
+				const interface = require(`./interfaces/${key}/main.js`)
+				interfaces[key] = new interface(parsedConfig[key], self);
 			}
 		});
 }
