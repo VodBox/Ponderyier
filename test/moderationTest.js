@@ -74,7 +74,30 @@ describe('Moderation', function () {
 	});
 
 	describe("Symbols/Emotes", function () {
-		it("should bop too many symbols/emotes");
+		it("should bop too many symbols/emotes", function (done) {
+			const tags = {
+				message: "(╯°□°）╯︵ ┻━┻) (╯°□°）╯︵ ┻━┻) (╯°□°）╯︵ ┻━┻)",
+				user: "normalUser",
+				channel: "testChat",
+				emotes: "",
+				interface: { name: "testInterface" }
+			};
+			const dummyManager = {
+				interfaces: {
+					testInterface: {
+						purgeUser: () => {
+							console.log("purgeUser called");
+							done();
+						},
+						sendMessage: () => {
+							console.log("sendMessage called");
+							// done();
+						}
+					}
+				}
+			};
+			const result = moderation.runCommand(tags, dummyManager);
+		});
 		it("should ignore regulars and above");
 	});
 
