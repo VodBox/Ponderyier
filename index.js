@@ -1,6 +1,8 @@
 /** Entry point into Ponderyier */
 const fs = require('fs');
 const path = require('path');
+const utils = require("./engine/utils.js");
+const wrapInPromise = utils.wrapInPromise;
 
 const interfaces = {}; //object holding interface references.
 const commandRefs = {}; //object holding command references
@@ -16,24 +18,6 @@ module.exports = function () {
 	self = this;
 	start(this);
 };
-
-/**
- * Wraps a callback API in a promise
- * @param {Object} funcToWrap - the function to wrap in a promise
- * @param {String} arg - the argument to pass to that function
- * @return a promise containing array of files, or an error
- */
-function wrapInPromise(funcToWrap, arg) {
-	return new Promise((resolve, reject) => {
-		funcToWrap(arg, (error, files) => {
-			if (error) {
-				reject(new Error(error));
-			} else {
-				resolve(files);
-			}
-		});
-	});
-}
 
 /**
  * Starts Pond delegation service
