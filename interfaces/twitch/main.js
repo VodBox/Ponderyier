@@ -12,6 +12,8 @@ let callbacks = [];
 let symbols = ['<', '>', '?', ',', "'", '='];
 let irc; //websocket connection to Twitch IRC chat server
 
+var self;
+
 module.exports = function (config, manager) {
 	this.connected = false; //indicates if a connection to twitch has been established
 	this.manager = manager;
@@ -20,9 +22,10 @@ module.exports = function (config, manager) {
 	this.purgeUser = purgeUser;
 	this.kickUser = kickUser;
 	this.banUser = banUser;
+	self = this;
 	if (config.token) {
 		this.oauthToken = config.token;
-		start();
+		start(this);
 	} else {
 		fs.readFile(config.tokenLocation, 'utf8', function (error, data) {
 			if (error) {
@@ -30,12 +33,12 @@ module.exports = function (config, manager) {
 				process.exit();
 			} else {
 				oauthToken = data;
-				start(this);
+				start(self);
 			}
 		});
 	}
 	this.addChannel = function (channel) {
-		if (connected) {
+		if (this.connected) {
 			joinChannel(channel, manager);
 		} else {
 			joinQueue[joinQueue.length] = channel;
@@ -91,6 +94,7 @@ function start(that) {
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 		that.connected = true;
 		for (let i = 0, l = joinQueue.length; i < l; ++i) {
+			console.log(that);
 			joinChannel(joinQueue[i], that.manager);
 		}
 	});
