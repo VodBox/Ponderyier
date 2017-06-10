@@ -32,7 +32,7 @@ module.exports = function (config, manager) {
 				console.error(new Error("Unable to find token file\n" + error));
 				process.exit();
 			} else {
-				oauthToken = data;
+				self.oauthToken = data;
 				start(self);
 			}
 		});
