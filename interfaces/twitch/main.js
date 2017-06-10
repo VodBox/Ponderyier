@@ -3,9 +3,6 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const path = require('path');
 
-let username; //Twitch username
-let oauthToken; //OAuth Token for authentication with Twitch
-
 let channels = {};
 let joinQueue = [];
 let callbacks = [];
@@ -15,6 +12,7 @@ let irc; //websocket connection to Twitch IRC chat server
 var self;
 
 module.exports = function (config, manager) {
+	this.urlRoot = "https://twitch.tv/";
 	this.connected = false; //indicates if a connection to twitch has been established
 	this.manager = manager;
 	this.username = config.username;
@@ -23,6 +21,28 @@ module.exports = function (config, manager) {
 	this.kickUser = kickUser;
 	this.banUser = banUser;
 	self = this;
+	if (config.clientID) {
+		this.clientID = config.clientID;
+	} else if(config.clientIDLocation) {
+		fs.readFile(config.clientIDLocation, 'utf8', function (err, dat) {
+			if(err) {
+				console.error(new Error("Unable to find client-id file\n" + err));
+			} else {
+				self.clientID = dat;
+			}
+		});
+	}
+	if (config.clientSecret) {
+		this.clientSecret = config.clientSecret;
+	} else if(config.clientSecretLocation) {
+		fs.readFile(config.clientSecretLocation, 'utf8', function (er, da) {
+			if(er) {
+				console.error(new Error("Unable to find client-id file\n" + er));
+			} else {
+				self.clientSecret = da;
+			}
+		});
+	}
 	if (config.token) {
 		this.oauthToken = config.token;
 		start(this);

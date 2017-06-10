@@ -1,6 +1,8 @@
 {
 	"twitch": {
 		"tokenLocation": "./tokens/Pond.txt",
-		"username": "pondv5"
+		"username": "pondv5",
+		"clientIDLocation": "./tokens/Client-Id.txt",
+		"clientSecretLocation": "./tokens/Client-Secret.txt"
 	}
 }
