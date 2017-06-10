@@ -4,6 +4,12 @@
 		"url": "dillonea",
 		"commands" : [
 			{
+				"command": "moderation",
+				"config": {
+
+				}
+			},
+			{
 				"command": "ponder",
 				"config": {
 					"resetTime": 1600,
@@ -27,20 +33,14 @@
 						"nightbot"
 					],
 					"timers": [
-						{
-							"uuid": "f01c5982-7564-4e86-91b2-7cee0990ac36",
-							"message": "This is the test message",
-							"name": "test",
-							"timeCooldown": 100,
-							"messageCooldown": 2
-						}
+
 					]
 				}
 			},
 			{
-				"command": "moderation",
+				"command": "lottery",
 				"config": {
-
+					"priceIsRightRules": true
 				}
 			}
 		]
