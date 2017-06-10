@@ -42,6 +42,18 @@
 				"config": {
 					"priceIsRightRules": true
 				}
+			},
+			{
+				"command": "raid",
+				"config": {
+					"targets": [
+						"pakratt0013",
+						"diredwarf",
+						"loadingartist",
+						"supermcgamer"
+					],
+					"message": "Test (Ignore): We're going to be raiding ${target} who is playing ${game} with ${viewers} viewers, at ${url} - ${title}"
+				}
 			}
 		]
 	}

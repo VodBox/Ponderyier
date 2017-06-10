@@ -2,6 +2,7 @@
 const fs = require('fs');
 const WebSocket = require('ws');
 const path = require('path');
+const request = require('request');
 
 let channels = {};
 let joinQueue = [];
@@ -20,6 +21,7 @@ module.exports = function (config, manager) {
 	this.purgeUser = purgeUser;
 	this.kickUser = kickUser;
 	this.banUser = banUser;
+	this.getInfoAboutUser = getInfoAboutUser;
 	self = this;
 	if (config.clientID) {
 		this.clientID = config.clientID;
@@ -210,4 +212,50 @@ function banUser(channel, user) {
 
 function kickUser(channel, user) {
 	irc.send(`PRIVMSG #${channel} :.timeout ${user}`);
+}
+
+function getInfoAboutUser(target, callback) {
+	let headers = {
+		"Accept": "application/vnd.twitchtv.v5+json",
+		"Client-ID": self.clientID
+	};
+	request({
+		url: "https://api.twitch.tv/kraken/users?login=" + target,
+		headers: headers
+	}, function(error, response, body) {
+		if(error) {
+			console.error(error);
+		} else {
+			let content = JSON.parse(body);
+			if(!content.error) {
+				let id = content.users[0]._id;
+				request({
+					url: "https://api.twitch.tv/kraken/streams/" + id,
+					headers: headers
+				}, function(err, res, bod) {
+					if(err) {
+						console.error(err);
+					} else {
+						let stream = JSON.parse(bod);
+						if(!stream.error) {
+							if(stream.stream != null) {
+								stream.stream.live = true;
+								stream.stream.title = stream.stream.channel.status;
+								stream.stream.name = (stream.stream.channel.display_name ?
+										stream.stream.channel.display_name :
+										stream.stream.channel.name);
+								callback(stream.stream);
+							} else {
+								callback({live: false});
+							}
+						} else {
+							callback({live: false});
+						}
+					}
+				});
+			} else {
+				callback({live: false});
+			}
+		}
+	});
 }
