@@ -89,12 +89,11 @@ function start(that) {
 		}
 	});
 	irc.on('open', (event) => {
-		irc.send('PASS ' + oauthToken);
-		irc.send('NICK ' + username);
+		irc.send('PASS ' + that.oauthToken);
+		irc.send('NICK ' + that.username);
 		irc.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 		that.connected = true;
 		for (let i = 0, l = joinQueue.length; i < l; ++i) {
-			console.log(that);
 			joinChannel(joinQueue[i], that.manager);
 		}
 	});
