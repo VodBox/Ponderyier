@@ -214,7 +214,7 @@ function kickUser(channel, user) {
 	irc.send(`PRIVMSG #${channel} :.timeout ${user}`);
 }
 
-function getInfoAboutUser(target, callback) {
+function getInfoAboutStream(target, callback) {
 	let headers = {
 		"Accept": "application/vnd.twitchtv.v5+json",
 		"Client-ID": self.clientID

@@ -65,7 +65,7 @@ function getRaidTargets(targets, interface, _super, callback) {
 }
 
 function getTargetInfo(target, interface, _super, callback) {
-	_super.interfaces[interface].getInfoAboutUser(target, function(userInfo) {
+	_super.interfaces[interface].getInfoAboutStream(target, function(userInfo) {
 		callback(userInfo);
 	});
 }
