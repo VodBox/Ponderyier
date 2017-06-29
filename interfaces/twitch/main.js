@@ -21,7 +21,7 @@ module.exports = function (config, manager) {
 	this.purgeUser = purgeUser;
 	this.kickUser = kickUser;
 	this.banUser = banUser;
-	this.getInfoAboutUser = getInfoAboutUser;
+	this.getInfoAboutStream = getInfoAboutStream;
 	self = this;
 	if (config.clientID) {
 		this.clientID = config.clientID;
