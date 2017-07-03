@@ -9,6 +9,9 @@ let joinQueue = [];
 let callbacks = [];
 let symbols = ['<', '>', '?', ',', "'", '='];
 let irc; //websocket connection to Twitch IRC chat server
+let headers = {
+	"Accept": "application/vnd.twitchtv.v5+json"
+};
 
 var self;
 
@@ -22,6 +25,7 @@ module.exports = function (config, manager) {
 	this.kickUser = kickUser;
 	this.banUser = banUser;
 	this.getInfoAboutStream = getInfoAboutStream;
+	this.getInfoAboutUser = getInfoAboutUser;
 	self = this;
 	if (config.clientID) {
 		this.clientID = config.clientID;
@@ -215,10 +219,42 @@ function kickUser(channel, user) {
 }
 
 function getInfoAboutStream(target, callback) {
-	let headers = {
-		"Accept": "application/vnd.twitchtv.v5+json",
-		"Client-ID": self.clientID
-	};
+	headers["Client-ID"] = self.clientID;
+	getUserId(target, function(content) {
+		if(!content.error) {
+			let id = content.channelId;
+			request({
+				url: "https://api.twitch.tv/kraken/streams/" + id,
+				headers: headers
+			}, function(err, res, bod) {
+				if(err) {
+					console.error(err);
+				} else {
+					let stream = JSON.parse(bod);
+					if(!stream.error) {
+						if(stream.stream != null) {
+							stream.stream.live = true;
+							stream.stream.title = stream.stream.channel.status;
+							stream.stream.name = (stream.stream.channel.display_name ?
+									stream.stream.channel.display_name :
+									stream.stream.channel.name);
+							callback(stream.stream);
+						} else {
+							callback({live: false});
+						}
+					} else {
+						callback({live: false});
+					}
+				}
+			});
+		} else {
+			callback({live: false});
+		}
+	});
+}
+
+function getInfoAboutUser(target, channel, callback) {
+	headers["Client-ID"] = self.clientID;
 	request({
 		url: "https://api.twitch.tv/kraken/users?login=" + target,
 		headers: headers
@@ -226,36 +262,118 @@ function getInfoAboutStream(target, callback) {
 		if(error) {
 			console.error(error);
 		} else {
-			let content = JSON.parse(body);
-			if(!content.error) {
-				let id = content.users[0]._id;
-				request({
-					url: "https://api.twitch.tv/kraken/streams/" + id,
-					headers: headers
-				}, function(err, res, bod) {
-					if(err) {
-						console.error(err);
-					} else {
-						let stream = JSON.parse(bod);
-						if(!stream.error) {
-							if(stream.stream != null) {
-								stream.stream.live = true;
-								stream.stream.title = stream.stream.channel.status;
-								stream.stream.name = (stream.stream.channel.display_name ?
-										stream.stream.channel.display_name :
-										stream.stream.channel.name);
-								callback(stream.stream);
-							} else {
-								callback({live: false});
-							}
-						} else {
-							callback({live: false});
-						}
+			let user = JSON.parse(body);
+			if(!user.error) {
+				let userId = user.users[0]._id;
+				let result = {};
+				getFollowStatus(userId, channel, function(res) {
+					if(!res.error) {
+						result = res;
 					}
+					getSubStatus(userId, res.channelId, function(resp) {
+						if(!resp.error) {
+							result.sub = resp.sub;
+							if(resp.sub) {
+								result.subDiff = resp.subDiff;
+							}
+						}
+						callback(result);
+					}, channel);
 				});
 			} else {
-				callback({live: false});
+				callback({error: true});
 			}
 		}
+	});
+}
+
+function getFollowStatus(userId, channel, callback) {
+	getUserId(channel, function(res) {
+		if(!res.error) {
+			let channelId = res.channelId;
+			request({
+				url: "https://api.twitch.tv/kraken/users/" + userId + "/follows/channels/" + channelId,
+				headers: headers
+			}, function(er, re, bo) {
+				if(er) {
+					console.error(er);
+					callback({error: true});
+				} else {
+					let follow = JSON.parse(bo);
+					if(!follow.error) {
+						callback({follow: true, folDiff: Date.now() - Date.parse(follow.created_at), channelId: channelId});
+					} else {
+						callback({follow: false, channelId: channelId});
+					}
+				}
+			});
+		} else {
+			callback({error: true});
+		}
+	});
+}
+
+function getSubStatus(userId, channelId, callback, channel) {
+	if(!channelId) {
+		getUserId(channel, function(id) {
+			getSubStatus(userId, id, callback, channel);
+		});
+		return;
+	} else if(!channels[channel].token) {
+		if(channels[channel].tokenLocation) {
+			getOAuthToken(channel, function() {
+				getSubStatus(userId, channelId, callback, channel);
+			});
+			return;
+		}
+		callback({error: true});
+		return;
+	}
+	headers.Authorization = "OAuth " + channels[channel].token;
+	request({
+		url: "https://api.twitch.tv/kraken/channels/" + channelId + "/subscriptions/" + userId,
+		headers: headers
+	}, function(er, re, bo) {
+		if(er) {
+			console.error(er);
+			callback({error: true});
+		} else {
+			let sub = JSON.parse(bo);
+			if(!sub.error) {
+				callback({sub: true, subDiff: Date.now() - Date.parse(sub.created_at), channelId: channelId});
+			} else {
+				callback({sub: false, channelId: channelId});
+			}
+		}
+	});
+}
+
+function getUserId(user, callback) {
+	request({
+		url: "https://api.twitch.tv/kraken/users?login=" + user,
+		headers: headers
+	}, function(err, res, bod) {
+		if(err) {
+			console.error(err);
+		} else {
+			let streamer = JSON.parse(bod);
+			if(!streamer.error) {
+				let channelId = streamer.users[0]._id;
+				callback({channelId: channelId});
+			} else {
+				callback({error: true});
+			}
+		}
+	});
+}
+
+function getOAuthToken(channel, callback) {
+	fs.readFile(channels[channel].tokenLocation, 'utf8', function (err, dat) {
+		if(err) {
+			channels[channel].tokenLocation = false;
+		} else {
+			channels[channel].token = dat;
+		}
+		callback();
 	});
 }

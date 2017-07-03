@@ -3,6 +3,7 @@
 	"twitch": {
 		"url": "dillonea",
 		"subscriptions": true,
+		"tokenLocation": "./tokens/dillonea.txt",
 		"commands" : [
 			{
 				"command": "moderation",
