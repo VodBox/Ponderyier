@@ -6,12 +6,6 @@
 		"tokenLocation": "./tokens/dillonea.txt",
 		"commands" : [
 			{
-				"command": "moderation",
-				"config": {
-
-				}
-			},
-			{
 				"command": "ponder",
 				"config": {
 					"resetTime": 1600,
@@ -37,6 +31,17 @@
 					"timers": [
 
 					]
+				}
+			},
+			{
+				"command": "reply",
+				"config": {
+					"replies": {
+						"schedule": {
+							"response": "The Schedule Would Go Here",
+							"cooldown": 3
+						}
+					}
 				}
 			},
 			{
