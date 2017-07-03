@@ -34,6 +34,17 @@
 				}
 			},
 			{
+				"command": "counters",
+				"config": {
+					"counters": {
+						"tests": {
+							"amount": 10,
+							"mod": true
+						}
+					}
+				}
+			},
+			{
 				"command": "reply",
 				"config": {
 					"replies": {
