@@ -2,6 +2,7 @@
 	"channel": "dillonea",
 	"twitch": {
 		"url": "dillonea",
+		"subscriptions": true,
 		"commands" : [
 			{
 				"command": "moderation",
@@ -44,6 +45,10 @@
 				}
 			},
 			{
+				"command": "raffle",
+				"config": {}
+			},
+			{
 				"command": "raid",
 				"config": {
 					"targets": [
@@ -52,7 +57,8 @@
 						"loadingartist",
 						"supermcgamer"
 					],
-					"message": "Test (Ignore): We're going to be raiding ${target} who is playing ${game} with ${viewers} viewers, at ${url} - ${title}"
+					"message": "Test (Ignore): We're going to be raiding ${target} who is playing ${game} with ${viewers} viewers, at ${url} - ${title}",
+					"vodcasts": true
 				}
 			}
 		]

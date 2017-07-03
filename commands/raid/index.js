@@ -16,9 +16,14 @@ module.exports = function() {
 		if(tags.user == chat) {
 			if(message == "!raid") {
 				getRaidTargets(chats[chat].targets, interface, _super, function(target) {
-					_super.interfaces[interface].sendMessage(chat, target.name +
-						" is live with " + target.game + ", at " +
-						_super.interfaces[interface].urlRoot + target.name);
+					if(target.stream_type == "live" || chats[chat].vodcasts) {
+						_super.interfaces[interface].sendMessage(chat, target.name +
+							" is live with " + target.game + ", at " +
+							_super.interfaces[interface].urlRoot + target.name + (target.stream_type == "watch_party" ? " [VODCAST]" : ""));
+					} else {
+						console.log('here');
+						console.log(target);
+					}
 				});
 			} else if(message.match(/^\!raid\s+(\S+)$/)) {
 				let parseable = chats[chat].message;
