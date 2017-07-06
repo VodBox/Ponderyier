@@ -66,6 +66,10 @@
 				"config": {}
 			},
 			{
+				"command": "poll",
+				"config": {}
+			},
+			{
 				"command": "raid",
 				"config": {
 					"targets": [
