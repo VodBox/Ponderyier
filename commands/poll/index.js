@@ -1,3 +1,7 @@
+/**
+ * The poll command allows chat to vote on multiple options
+ */
+
 var chats = {};
 var entries = {};
 var enabled = {};

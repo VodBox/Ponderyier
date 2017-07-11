@@ -1,3 +1,7 @@
+/**
+ * The raid command shows which other streams (from a predetermined list) are currently live
+ */
+
 const request = require("request");
 var chats = {};
 

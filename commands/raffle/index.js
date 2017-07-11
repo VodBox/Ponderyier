@@ -1,3 +1,9 @@
+/**
+ * The raffle commands allows raffles to be run.
+ * 
+ * Users can create, enter, close and draw winners from the raffle.
+ */
+
 var chats = {};
 var entries = {};
 var enabled = {};

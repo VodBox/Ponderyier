@@ -1,3 +1,7 @@
+/**
+ * The Reply command allows users to add predefined replies to given commands
+ */
+
 var chats = {};
 var replies = {};
 var cooldowns = {};

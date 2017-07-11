@@ -1,3 +1,9 @@
+/**
+ * The Lottery command allows a lottery to be run
+ * 
+ * //TODO: explain what this command does in natural language
+ */
+
 var chats = {};
 var guesses = {};
 var enabled = {};

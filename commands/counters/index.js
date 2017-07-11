@@ -1,3 +1,8 @@
+/**
+ * The Counters command allows users to track a numerical variable.
+ * 
+ * Users can define, increment, decrement and query variables.
+ */
 var chats = {};
 var counters = {};
 
