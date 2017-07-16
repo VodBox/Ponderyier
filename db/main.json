@@ -1,0 +1,6 @@
+{
+	"users": {
+		"type": "reference",
+		"filepath": "users.json"
+	}
+}
