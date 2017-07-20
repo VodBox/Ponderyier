@@ -81,7 +81,7 @@ function removeKey(key) {
 }
 
 function save(self) {
-	fs.writeFile('../db/' + self.filepath, JSON.stringify(self.store, function(key, value) {
+	fs.writeFile('./db/' + self.filepath, JSON.stringify(self.store, function(key, value) {
 		if(value instanceof module.exports) {
 			return {
 				type: "reference",
@@ -97,9 +97,10 @@ function save(self) {
 }
 
 function parseFile(filepath, self, callback) {
-	fs.readFile("../db/" + filepath, function(err, data) {
+	fs.readFile("./db/" + filepath, function(err, data) {
 		if(err) {
 			console.error(err);
+			callback();
 		} else {
 			try {
 				self.store = JSON.parse(data);
@@ -122,7 +123,6 @@ function connectRefsObj(obj) {
 			if(obj[key].type && obj[key].type == "reference" && obj[key].filepath) {
 				obj[key] = new module.exports(obj[key].filepath);
 			} else {
-				console.log('beforeobj');
 				connectRefsObj(obj[key]);
 			}
 		} else if(typeof obj[key] === "object") {
@@ -134,7 +134,6 @@ function connectRefsObj(obj) {
 function connectRefsArr(arr) {
 	for(let index in arr) {
 		let item = arr[index];
-		console.log(item);
 		if(typeof item === "object" && !Array.isArray(item)) {
 			if(item.type && item.type == "reference" && item.filepath) {
 				arr[index] = new module.exports(item.filepath);

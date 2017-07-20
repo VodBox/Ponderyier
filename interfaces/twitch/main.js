@@ -184,6 +184,19 @@ function issueCallbacks(type, data, that) {
  */
 on('PRIVMSG', (data, that) => {
 	console.log(`${data.channel}: <${(data["display-name"] ? data["display-name"] : data.user)}> ${data.message}`);
+	let userDb = that.manager.db.getKey("users");
+	if(!userDb.getKey("twitch-" + data.user)) {
+		userDb.setKey("twitch-" + data.user, {
+			messagesInChat: 0,
+			lastMessages: []
+		});
+	}
+	let user = userDb.getKey("twitch-" + data.user);
+	++user.messagesInChat;
+	user.lastMessageTime = Date.now();
+	user.lastMessages.splice(0,0,data.message);
+	user.lastMessages = user.lastMessages.slice(0,5);
+	userDb.setKey("twitch-" + data.user, user);
 	if (data.message == "!v5Reload" && data.user == "dillonea") {
 		that.manager.reload();
 	} else {

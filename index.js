@@ -8,6 +8,8 @@ const interfaces = {}; //object holding interface references.
 const commandRefs = {}; //object holding command references
 const savedOptions = {}; //object holding saved options
 
+const db = new (require("./engine/dbManager.js"))();
+
 var self;
 
 module.exports = function () {
@@ -15,6 +17,7 @@ module.exports = function () {
 	this.runCommand = runCommand;
 	this.reload = reload;
 	this.interfaces = interfaces;
+	this.db = db;
 	self = this;
 	start(this);
 };
