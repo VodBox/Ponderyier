@@ -1,6 +1,6 @@
 /**
  * The raffle commands allows raffles to be run.
- * 
+ *
  * Users can create, enter, close and draw winners from the raffle.
  */
 
@@ -17,6 +17,8 @@ module.exports = function() {
 	};
 
 	this.exists = true;
+
+	this.instances = chats;
 
 	this.runCommand = function(tags, _super) {
 		let message = tags.message;

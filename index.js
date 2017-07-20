@@ -110,13 +110,15 @@ function registerCommand(options) {
 			options.reload = false;
 		}
 		if (options.reload) {
-			var instanceCache = commandRefs[options.command].instances;
-			delete require.cache[path.resolve(`./commands/${options.command}.js`)];
-			commandRefs[options.command] = new require(`./commands/${options.command}/index.js`);
-			for (var i = 0, l = instanceCache.length; i < l; ++i) {
-				if (instanceCache[i] !== options.interface) {
-					commandRefs[options.command].addInstance(instanceCache[i].destination, instanceCache[i].options, self, commandRefs[options.command], options.interface.name);
-				}
+			let state = commandRefs[options.command].pullOptions();
+			delete require.cache[require.resolve(`./commands/${options.command}/index.js`)];
+			try {
+				let newInstance = new (require(`./commands/${options.command}/index.js`))();
+				newInstance.setOptions(state);
+				commandRefs[options.command].exit();
+				commandRefs[options.command] = newInstance;
+			} catch(e) {
+				console.log(e);
 			}
 		} else {
 			commandRefs[options.command].addInstance(options.interface.destination, options.interface.options, self, commandRefs[options.command], options.interface.name);
@@ -143,7 +145,12 @@ function runCommand(options, callback) {
 }
 
 function reload() {
-	console.log(new Error("reload not implemented"));
+	for(let key in commandRefs) {
+		registerCommand({
+			command: key,
+			reload: true
+		});
+	}
 }
 
 isDebugging(function (err, res) {

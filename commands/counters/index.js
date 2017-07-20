@@ -1,6 +1,6 @@
 /**
  * The Counters command allows users to track a numerical variable.
- * 
+ *
  * Users can define, increment, decrement and query variables.
  */
 var chats = {};
@@ -8,11 +8,14 @@ var counters = {};
 
 module.exports = function() {
 	this.addInstance = function(chat, config, _super, ignore, interface) {
+		console.log('instance add');
 		chats[chat] = config;
 		counters[chat] = config.counters;
 	};
 
 	this.exists = true;
+
+	this.instances = chats;
 
 	this.runCommand = function(tags, _super) {
 		let message = tags.message;
@@ -74,12 +77,14 @@ module.exports = function() {
 
 	this.pullOptions = function() {
 		return {
-			chats: chats
+			chats: chats,
+			counters: counters
 		};
 	};
 
 	this.setOptions = function(options) {
 		chats = options.chats;
+		counters = options.counters;
 	};
 
 	this.exit = function() {

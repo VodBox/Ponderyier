@@ -13,6 +13,8 @@ module.exports = function() {
 		entries[chat] = {};
 	};
 
+	this.instances = chats;
+
 	this.exists = true;
 
 	this.runCommand = function(tags, _super) {

@@ -24,6 +24,7 @@ module.exports = function() {
 	};
 
 	this.exists = true;
+	this.instances = chats;
 
 	this.runCommand = function(tags, _super) {
 		let chat = tags.channel;
@@ -115,7 +116,7 @@ module.exports = function() {
 	};
 
 	this.exit = function() {
-		return true;
+		clearTimers();
 	};
 	return this;
 };

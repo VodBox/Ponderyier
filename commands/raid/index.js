@@ -12,6 +12,8 @@ module.exports = function() {
 
 	this.exists = true;
 
+	this.instances = chats;
+
 	this.runCommand = function(tags, _super) {
 		let message = tags.message;
 		let chat = tags.channel;

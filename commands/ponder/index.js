@@ -26,6 +26,7 @@ module.exports = function () {
 	this.runCommand = runCommand;
 	this.pullOptions = pullOptions;
 	this.setOptions = setOptions;
+	this.instances = chatRooms;
 	this.exit = exit;
 	return this;
 };
@@ -60,7 +61,8 @@ function runCommand(tags) {
  */
 function pullOptions() {
 	return {
-		"hal": megaHAL
+		"hal": megaHAL,
+		"chats": chatRooms
 	};
 }
 
@@ -70,6 +72,7 @@ function pullOptions() {
  */
 function setOptions(options) {
 	megaHAL = options.hal;
+	chatRooms = options.chats;
 }
 
 /**

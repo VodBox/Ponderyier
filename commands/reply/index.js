@@ -15,6 +15,8 @@ module.exports = function() {
 
 	this.exists = true;
 
+	this.instances = chats;
+
 	this.runCommand = function(tags, _super) {
 		let message = tags.message;
 		let chat = tags.channel;
@@ -23,7 +25,7 @@ module.exports = function() {
 				if(message.match(/^\!reply\sadd/i)) {
 					let keyAndValue = message.match(/^\!reply\sadd\s(--cooldown=(\d+)\s)?"(.+?)"\s(.+)$/i);
 					if(!keyAndValue) {
-						return "Command Failed - Syntax Error";
+						return "Command Failed - Syntax Error - Reloading Works Properly";
 					} else if(replies[chat][keyAndValue[3]]) {
 						return "Command Failed - Key Already Exists";
 					}
@@ -65,6 +67,7 @@ module.exports = function() {
 		} else if(!message.startsWith("!")){
 			let keys = Object.keys(replies[chat]);
 			for(var i = 0, l = keys.length; i < l; ++i) {
+				console.log(cooldowns);
 				if(!cooldowns[chat][keys[i]]) {
 					cooldowns[chat][keys[i]] = 0;
 				}
@@ -88,6 +91,9 @@ module.exports = function() {
 	this.setOptions = function(options) {
 		chats = options.chats;
 		replies = options.replies;
+		for(let chat in options.chats) {
+			cooldowns[chat] = {};
+		}
 	};
 
 	this.exit = function() {

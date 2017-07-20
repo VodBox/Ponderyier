@@ -21,6 +21,7 @@ module.exports = function () {
 	this.runCommand = runCommand;
 	this.pullOptions = pullOptions;
 	this.setOptions = setOptions;
+	this.instances = chats;
 	this.exit = exit;
 	return this;
 };
