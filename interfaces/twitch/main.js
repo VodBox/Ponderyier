@@ -188,15 +188,10 @@ on('PRIVMSG', (data, that) => {
 	if(!userDb.getKey("twitch-" + data.user)) {
 		userDb.setKey("twitch-" + data.user, {
 			messagesInChat: 0,
-			lastMessages: []
+			lastMessages: [],
+			lastMessageTime: 0
 		});
 	}
-	let user = userDb.getKey("twitch-" + data.user);
-	++user.messagesInChat;
-	user.lastMessageTime = Date.now();
-	user.lastMessages.splice(0,0,data.message);
-	user.lastMessages = user.lastMessages.slice(0,5);
-	userDb.setKey("twitch-" + data.user, user);
 	if (data.message == "!v5Reload" && data.user == "dillonea") {
 		that.manager.reload();
 	} else {
@@ -213,6 +208,12 @@ on('PRIVMSG', (data, that) => {
 			sendMessage(data.channel, result);
 		});
 	}
+	let user = userDb.getKey("twitch-" + data.user);
+	++user.messagesInChat;
+	user.lastMessageTime = Date.now();
+	user.lastMessages.splice(0,0,data.message);
+	user.lastMessages = user.lastMessages.slice(0,5);
+	userDb.setKey("twitch-" + data.user, user);
 });
 
 function sendMessage(channel, message) {

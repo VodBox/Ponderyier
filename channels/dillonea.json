@@ -81,6 +81,12 @@
 					"message": "Test (Ignore): We're going to be raiding ${target} who is playing ${game} with ${viewers} viewers, at ${url} - ${title}",
 					"vodcasts": true
 				}
+			},
+			{
+				"command": "rpg",
+				"config": {
+					"scoreInterval": 120
+				}
 			}
 		]
 	}

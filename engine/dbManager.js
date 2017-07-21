@@ -1,7 +1,7 @@
 /**Database Manager */
 const fs = require("fs");
 
-module.exports = function(filepath) {
+module.exports = function(filepath, callback) {
 	if(!filepath) {
 		filepath = "main.json";
 	}
@@ -10,6 +10,9 @@ module.exports = function(filepath) {
 	parseFile(filepath, self, function() {
 		if(self.store === undefined) {
 			self.store = {};
+		}
+		if(callback) {
+			callback();
 		}
 	});
 

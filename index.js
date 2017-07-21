@@ -8,7 +8,13 @@ const interfaces = {}; //object holding interface references.
 const commandRefs = {}; //object holding command references
 const savedOptions = {}; //object holding saved options
 
-const db = new (require("./engine/dbManager.js"))();
+const db = new (require("./engine/dbManager.js"))("main.json", function() {
+	if(!db.getKey("users")) {
+		db.createObject("users.json", function(res) {
+			db.setKey("users", res);
+		});
+	}
+});
 
 var self;
 
