@@ -16,6 +16,9 @@ module.exports = function(filepath, callback) {
 		}
 	});
 
+	this.saveQueue = [];
+	this.save = save;
+
 	this.createObject = createObject;
 	this.createArray = createArray;
 
@@ -25,7 +28,7 @@ module.exports = function(filepath, callback) {
 };
 
 function createObject(filepath, callback) {
-	fs.writeFile("../db/" + filepath, "{}", function(err) {
+	fs.writeFile("./db/" + filepath, "{}", function(err) {
 		if(err) {
 			callback({
 				"error": true,
@@ -43,7 +46,7 @@ function createObject(filepath, callback) {
 }
 
 function createArray(filepath, callback) {
-	fs.writeFile("../db/" + filepath, "[]", function(err) {
+	fs.writeFile("./db/" + filepath, "[]", function(err) {
 		if(err) {
 			callback({
 				"error": true,
@@ -84,19 +87,34 @@ function removeKey(key) {
 }
 
 function save(self) {
-	fs.writeFile('./db/' + self.filepath, JSON.stringify(self.store, function(key, value) {
-		if(value instanceof module.exports) {
-			return {
-				type: "reference",
-				filepath: value.filepath
-			};
-		}
-		return value;
-	}, 2), function(err) {
-		if(err) {
-			console.error(err);
-		}
-	});
+	self.saveQueue[self.saveQueue.length] = function(callback) {
+		fs.writeFile('./db/' + self.filepath, JSON.stringify(self.store, function(key, value) {
+			if(value instanceof module.exports) {
+				return {
+					type: "reference",
+					filepath: value.filepath
+				};
+			}
+			return value;
+		}, 2), function(err) {
+			if(err) {
+				console.error(err);
+			}
+			callback(self);
+		});
+	}
+	if(self.saveQueue.length == 1) {
+		self.saveQueue[0](saveCallback);
+	}
+}
+
+function saveCallback(self) {
+	console.log('cb');
+	console.log(self.saveQueue);
+	self.saveQueue.splice(0, 1);
+	if(self.saveQueue.length > 0) {
+		self.saveQueue[0](saveCallback);
+	}
 }
 
 function parseFile(filepath, self, callback) {
