@@ -87,6 +87,12 @@
 				"config": {
 					"scoreInterval": 120
 				}
+			},
+			{
+				"command": "quotes",
+				"config": {
+					
+				}
 			}
 		]
 	}

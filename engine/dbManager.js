@@ -67,12 +67,12 @@ function getKey(key) {
 	return this.store[key];
 }
 
-function setKey(key, value) {
+function setKey(key, value, callback) {
 	if(typeof value !== "function") {
 		if(value !== undefined && value !== null) {
 			if(value.type && value.type == "reference" && value.filepath) {
 				if(!value.error) {
-					this.store[key] = new module.exports(value.filepath);
+					this.store[key] = new module.exports(value.filepath, callback);
 				}
 			} else {
 				this.store[key] = value;
