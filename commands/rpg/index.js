@@ -46,8 +46,8 @@ module.exports = function() {
 		};
 	}
 
-	this.setOptions = function() {
-		chats = chats;
+	this.setOptions = function(options) {
+		chats = options.chats;
 	}
 
 	this.exit = function() {
