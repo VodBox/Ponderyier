@@ -91,7 +91,13 @@
 			{
 				"command": "quotes",
 				"config": {
-					
+
+				}
+			},
+			{
+				"command": "betting",
+				"config": {
+					"payoutRatio": 2
 				}
 			}
 		]
